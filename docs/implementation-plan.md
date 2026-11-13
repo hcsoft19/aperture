@@ -82,7 +82,7 @@ Done. Invitations, account linking, revocable sharing, a patient timeline, and p
 
 The public landing page is a blush and wine marketing page. It explains guided capture, unchanged originals, and revocable sharing, and it includes an interactive before-and-after preview. That preview uses the committed illustration `public/demo-portraits.png`. It is labeled as a fictional demonstration, not a patient result.
 
-The signed-in clinic home greets the active clinic and offers the patient library, a new capture, and a new chart. The app shell remains a warm neutral surface with a muted green accent.
+The signed-in clinic home greets the active clinic and offers the patient library, a new capture, and a new chart. The app shell shares the landing page’s white surfaces, blush panels, wine accents, and Figtree typography.
 
 ### Phase 7 — Quality and deployment
 
@@ -110,7 +110,7 @@ Still open: a full RLS test suite, Playwright for sign-in, patient isolation, ca
 6. The env variable is `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. A legacy anon key can be pasted there until the project is rotated.
 7. Node.js 22 or newer is required. The machine used for this scaffold was on Node 20.18, which is below the current package engines.
 8. Local Supabase runs on offset ports because another local project already uses the defaults. A separate hosted prototype now exists; its addresses are in `docs/specification.md`.
-9. The signed-in app is a warm neutral surface with a muted green accent. The public landing page is blush and wine. Light mode only.
+9. The signed-in app and public landing page share white surfaces, blush panels, wine accents, and Figtree typography. Light mode only.
 10. Staff membership chooses the professional shell. A linked patient with no staff membership sees the patient shell. A new account sees clinic setup.
 11. Playwright is deferred until Phase 7, when there is a workflow to drive.
 12. Vercel Hobby and Supabase Free are for this prototype only, and not for real clinical data.

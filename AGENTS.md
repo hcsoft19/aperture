@@ -34,7 +34,7 @@ Do not add a separate backend, Java, Nest, Express, React Native, Flutter, or a 
 ## Product boundaries
 
 - The MVP includes guided capture, comparisons, and revocable patient sharing. Originals stay immutable. A demonstration host already exists; do not deploy again, or point it at real patients, without confirmation.
-- The public landing page uses a blush and wine palette and an interactive preview of `public/demo-portraits.png`. The signed-in app stays a warm neutral surface with a muted green accent. Figtree remains the typeface.
+- The public landing page uses a blush and wine palette and an interactive preview of `public/demo-portraits.png`. The signed-in app shares the landing page’s white surfaces, blush panels, wine accents, and Figtree typography. Keep this visual system consistent across authentication, navigation, charts, and capture.
 - Do not hardcode the facial protocol into the camera. It will be versioned in the database.
 - Do not collect extra patient data, and do not use real patient health information in development.
 - Show plain error messages. Do not render raw database or auth internals.
