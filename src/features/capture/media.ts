@@ -19,18 +19,22 @@ export async function describePhotograph(file: Blob): Promise<PhotographDetails 
     return null;
   }
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  const bitmap = await createImageBitmap(new Blob([bytes], { type: file.type }));
-  const details = {
-    sha256: [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join(""),
-    width: bitmap.width,
-    height: bitmap.height,
-    mimeType: file.type,
-    fileSizeBytes: file.size,
-  };
-  bitmap.close();
-  return details;
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    const bitmap = await createImageBitmap(new Blob([bytes], { type: file.type }));
+    const details = {
+      sha256: [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join(""),
+      width: bitmap.width,
+      height: bitmap.height,
+      mimeType: file.type,
+      fileSizeBytes: file.size,
+    };
+    bitmap.close();
+    return details;
+  } catch {
+    return null;
+  }
 }
 
 export async function frameFromVideo(video: HTMLVideoElement) {
