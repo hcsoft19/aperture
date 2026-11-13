@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Aperture, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -20,15 +21,17 @@ export function AppShell({ workspace, children }: AppShellProps) {
         : "Set up your clinic";
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto flex min-h-dvh w-full max-w-6xl">
-        <aside className="hidden w-60 shrink-0 border-r border-border bg-card px-4 py-6 lg:block">
-          <Link href="/home" className="mb-8 block px-3 text-lg font-semibold tracking-tight">
-            {APP_NAME}
+      <div className="mx-auto flex min-h-dvh w-full max-w-[1440px]">
+        <aside className="hidden w-64 shrink-0 border-r border-border bg-card/70 px-5 py-8 lg:block">
+          <Link href="/home" className="mb-10 flex min-h-11 items-center gap-2.5 px-3 text-xl font-medium tracking-tight">
+            <Aperture aria-hidden="true" className="size-7 text-primary" />{APP_NAME}.
           </Link>
+          <p className="eyebrow mb-4 px-3 text-muted-foreground">Workspace</p>
           <SideNav kind={workspace.kind} />
+          <div className="mt-12 rounded-2xl bg-secondary p-4"><ShieldCheck aria-hidden="true" className="mb-3 size-5 text-primary" /><p className="text-base font-medium">Care in every detail.</p><p className="mt-2 text-sm leading-6 text-muted-foreground">A dedicated space for your clinic’s patient stories.</p></div>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-3 lg:px-8">
+          <header className="flex items-center justify-between gap-4 border-b border-border bg-card/60 px-4 py-5 lg:px-10">
             <Link href="/home" className="text-lg font-semibold tracking-tight lg:hidden">
               {APP_NAME}
             </Link>
@@ -37,7 +40,7 @@ export function AppShell({ workspace, children }: AppShellProps) {
               {workspace.user.email ?? "Signed in"}
             </p>
           </header>
-          <div className="flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-10">{children}</div>
+          <div className="flex-1 px-5 py-8 pb-28 sm:px-8 lg:px-10 lg:py-10 lg:pb-12">{children}</div>
         </div>
       </div>
       <BottomNav kind={workspace.kind} />
