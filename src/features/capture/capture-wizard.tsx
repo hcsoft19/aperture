@@ -150,57 +150,62 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
     }
     setSaving(true);
     setMessage(null);
-    const details = await describePhotograph(pendingFile);
-    if (!details || Math.min(details.width, details.height) < 1000) {
-      setMessage("Use a photograph at least 1000 pixels on the shortest side.");
+    try {
+      const details = await describePhotograph(pendingFile);
+      if (!details) {
+        setMessage("This photograph could not be read. Choose a valid JPEG, PNG, or WebP file up to 10 MB.");
+        return;
+      }
+      if (Math.min(details.width, details.height) < 1000) {
+        setMessage("Use a photograph at least 1000 pixels on the shortest side.");
+        return;
+      }
+
+      const prepared = await preparePhotoAction({
+        sessionId: session.id,
+        angleId: angle.id,
+        source,
+        mimeType: details.mimeType,
+        width: details.width,
+        height: details.height,
+        fileSizeBytes: details.fileSizeBytes,
+        sha256: details.sha256,
+        cameraFacing: source === "camera" ? facing : null,
+        overlayOpacity: reference?.previewUrl ? 0.45 : null,
+        referencePhotoId: reference?.id ?? null,
+      });
+
+      if (prepared.status === "error") {
+        setMessage(prepared.message);
+        return;
+      }
+
+      const supabase = createClient();
+      const upload = await supabase.storage.from("clinical-photos").upload(prepared.storagePath, pendingFile, {
+        contentType: details.mimeType,
+        upsert: false,
+      });
+
+      if (upload.error) {
+        await discardPhotoAction({ sessionId: session.id, photoId: prepared.photoId });
+        setMessage("The photograph could not be saved.");
+        return;
+      }
+
+      const finalized = await finalizePhotoAction({ sessionId: session.id, photoId: prepared.photoId });
+      if (finalized.status === "error") {
+        setMessage(finalized.message);
+        return;
+      }
+
+      setSavedExtra((current) => [...current, angle.id]);
+      resetReview();
+      router.refresh();
+    } catch {
+      setMessage("The photograph could not be saved. Try again or choose another photograph.");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    const prepared = await preparePhotoAction({
-      sessionId: session.id,
-      angleId: angle.id,
-      source,
-      mimeType: details.mimeType,
-      width: details.width,
-      height: details.height,
-      fileSizeBytes: details.fileSizeBytes,
-      sha256: details.sha256,
-      cameraFacing: source === "camera" ? facing : null,
-      overlayOpacity: reference?.previewUrl ? 0.45 : null,
-      referencePhotoId: reference?.id ?? null,
-    });
-
-    if (prepared.status === "error") {
-      setMessage(prepared.message);
-      setSaving(false);
-      return;
-    }
-
-    const supabase = createClient();
-    const upload = await supabase.storage.from("clinical-photos").upload(prepared.storagePath, pendingFile, {
-      contentType: details.mimeType,
-      upsert: false,
-    });
-
-    if (upload.error) {
-      await discardPhotoAction({ sessionId: session.id, photoId: prepared.photoId });
-      setMessage("The photograph could not be saved.");
-      setSaving(false);
-      return;
-    }
-
-    const finalized = await finalizePhotoAction({ sessionId: session.id, photoId: prepared.photoId });
-    if (finalized.status === "error") {
-      setMessage(finalized.message);
-      setSaving(false);
-      return;
-    }
-
-    setSavedExtra((current) => [...current, angle.id]);
-    resetReview();
-    router.refresh();
-    setSaving(false);
   }
 
   async function finish(kind: "complete" | "cancel") {
