@@ -7,6 +7,8 @@ import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { formatChartDate, sessionStatusLabel, sessionTypeLabel, treatmentStatusLabel } from "@/features/patients/labels";
 import { countPhotographs, getPatient, getTreatment, listTreatmentSessions } from "@/features/patients/queries";
+import { ReleaseButton, ShareButton } from "@/features/sharing/share-controls";
+import { listTreatmentComparisons } from "@/features/sharing/queries";
 import { isUuid } from "@/lib/ids";
 
 export const metadata: Metadata = {
@@ -47,9 +49,10 @@ async function TreatmentContent({ params }: TreatmentPageProps) {
     return <ChartMessage title="Treatment" message="This treatment is not available." />;
   }
 
-  const [photographs, sessions] = await Promise.all([
+  const [photographs, sessions, comparisons] = await Promise.all([
     countPhotographs(patientId, [treatment.id]),
     listTreatmentSessions(treatment.id),
+    listTreatmentComparisons(treatment.id),
   ]);
   const startDate = formatChartDate(treatment.startDate);
 
@@ -89,15 +92,18 @@ async function TreatmentContent({ params }: TreatmentPageProps) {
           <ul className="mt-3 flex flex-col gap-2">
             {sessions.map((session) => (
               <li key={session.id}>
-                <Link
-                  href={`/capture/${session.id}`}
-                  className="flex min-h-11 flex-col justify-center rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10"
-                >
-                  <span className="font-medium">{sessionTypeLabel(session.sessionType)}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatChartDate(session.sessionDate)} · {sessionStatusLabel(session.status)}
-                  </span>
-                </Link>
+                <div className="flex flex-col gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+                  <Link href={`/capture/${session.id}`} className="flex min-h-11 flex-col justify-center">
+                    <span className="font-medium">{sessionTypeLabel(session.sessionType)}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatChartDate(session.sessionDate)} · {sessionStatusLabel(session.status)}
+                      {session.status === "completed" ? ` · ${session.releasedToPatient ? "Released" : "Not released"}` : ""}
+                    </span>
+                  </Link>
+                  {session.status === "completed" ? (
+                    <ReleaseButton sessionId={session.id} released={session.releasedToPatient} />
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
@@ -108,6 +114,26 @@ async function TreatmentContent({ params }: TreatmentPageProps) {
         >
           Photograph
         </Link>
+      </div>
+      <div>
+        <h2 className="text-lg font-semibold">Comparisons</h2>
+        {comparisons.length === 0 ? (
+          <p className="mt-2 text-base text-muted-foreground">
+            Save a comparison from a finished follow-up session before sharing it.
+          </p>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-3">
+            {comparisons.map((comparison) => (
+              <li key={comparison.id} className="flex flex-col gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+                <p className="font-medium">{comparison.angleName}</p>
+                <p className="text-sm text-muted-foreground">
+                  {comparison.aligned ? "Aligned" : "Not aligned"} · {comparison.shared ? "Shared" : "Not shared"}
+                </p>
+                <ShareButton comparisonId={comparison.id} shared={comparison.shared} />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

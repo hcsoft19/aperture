@@ -167,6 +167,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"patient_invitations": {
+                  Row: {
+                    "accepted_at": string | null,"created_at": string,"email": string,"expires_at": string,"id": string,"invited_by": string,"organization_id": string,"patient_id": string,"revoked_at": string | null,"token_hash": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"created_at"?: string,"email": string,"expires_at": string,"id"?: string,"invited_by": string,"organization_id": string,"patient_id": string,"revoked_at"?: string | null,"token_hash": string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"created_at"?: string,"email"?: string,"expires_at"?: string,"id"?: string,"invited_by"?: string,"organization_id"?: string,"patient_id"?: string,"revoked_at"?: string | null,"token_hash"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patient_invitations_invited_by_fkey"
+      columns: ["invited_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patient_invitations_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patient_invitations_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+      referencedRelation: "patients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"patients": {
                   Row: {
                     "contact_email": string | null,"created_at": string,"date_of_birth": string | null,"first_name": string,"id": string,"last_name": string,"organization_id": string,"phone": string | null,"updated_at": string
@@ -337,7 +369,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "add_organization_member":
+            "accept_patient_invitation":
+{ Args: { "raw_token": string }; Returns: string
+                           },
+"add_organization_member":
 { Args: { "member_email": string,"target_org": string }; Returns: undefined
                            },
 "create_organization":

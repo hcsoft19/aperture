@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Medical aesthetics before-and-after photography. Mobile-first Next.js app. One clinic's records must never leak to another clinic or to another patient.
 
-Working name is **Aperture** until a brand is chosen. Phase status and open decisions live in `docs/implementation-plan.md`.
+Working name is **Aperture** until a brand is chosen. The continuation specification is `docs/specification.md`. Phase status and open decisions live in `docs/implementation-plan.md`.
 
 ## Stack
 
@@ -29,10 +29,11 @@ Do not add a separate backend, Java, Nest, Express, React Native, Flutter, or a 
 - Proxy redirects are not enough. Server actions, route handlers, and RLS policies enforce access.
 - Clinic roles live in `organization_members`. Patient links live in `patient_accounts`. Read them on the server. Do not invent a role on the client or in `user_metadata`.
 - Clinical photographs, when they arrive, go in a private bucket. Originals stay immutable.
+- Demonstration portraits in `local-photos/` stay on this machine. Do not commit or push them.
 
 ## Product boundaries
 
-- Phase 4 is guided capture: the camera loads the protocol from the database, and originals stay immutable. Do not start comparisons without confirmation.
+- The MVP includes guided capture, comparisons, and revocable patient sharing. Originals stay immutable. Do not deploy to a hosted project without confirmation.
 - Do not hardcode the facial protocol into the camera. It will be versioned in the database.
 - Do not collect extra patient data, and do not use real patient health information in development.
 - Show plain error messages. Do not render raw database or auth internals.

@@ -3,6 +3,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { safeNextPath } from "@/lib/auth/paths";
+
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -51,6 +53,7 @@ async function requestOrigin() {
 
 export async function signInAction(
   values: LoginValues,
+  nextPath?: string,
 ): Promise<AuthActionResult> {
   const parsed = loginSchema.safeParse(values);
 
@@ -81,7 +84,7 @@ export async function signInAction(
     };
   }
 
-  redirect("/home");
+  redirect(safeNextPath(nextPath));
 }
 
 export async function signUpAction(

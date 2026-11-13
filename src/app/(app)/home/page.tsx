@@ -21,7 +21,7 @@ const upcoming = [
   },
   {
     title: "Comparisons",
-    description: "Original photographs stay private. Side-by-side review is not open yet.",
+    description: "Side-by-side review stores alignment only. Original photographs stay unchanged.",
   },
 ];
 
@@ -86,7 +86,7 @@ async function WorkspaceHome() {
           {workspace.activeMembership?.role === "clinic_admin"
             ? "a clinic administrator."
             : "a professional."}{" "}
-          Patient charts and guided capture are open. Comparisons are not.
+          Patient charts, guided capture, comparisons, and patient sharing are open.
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
