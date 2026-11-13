@@ -45,7 +45,15 @@ export type CaptureSessionView = {
   protocol: CaptureProtocol;
   photos: CapturePhoto[];
   references: CapturePhoto[];
-  comparisons: { beforeId: string; afterId: string; x: number; y: number; rotation: number; scale: number }[];
+  comparisons: {
+    beforeId: string;
+    afterId: string;
+    x: number;
+    y: number;
+    rotation: number;
+    scale: number;
+    aligned: boolean;
+  }[];
 };
 
 const CONSENT_PURPOSE = "Clinical photography";
@@ -224,9 +232,17 @@ async function assemble(
   const comparisons = (saved ?? []).flatMap((item) => {
     const value = item.alignment;
     if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-    const { x, y, rotation, scale } = value;
+    const { x, y, rotation, scale, aligned } = value;
     if (typeof x !== "number" || typeof y !== "number" || typeof rotation !== "number" || typeof scale !== "number") return [];
-    return [{ beforeId: item.before_photo_id, afterId: item.after_photo_id, x, y, rotation, scale }];
+    return [{
+      beforeId: item.before_photo_id,
+      afterId: item.after_photo_id,
+      x,
+      y,
+      rotation,
+      scale,
+      aligned: aligned === true,
+    }];
   });
 
   return {

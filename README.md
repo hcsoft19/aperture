@@ -2,7 +2,7 @@
 
 Mobile-first web app for medical aesthetic clinics to document treatment photographs, compare them over time, and share selected progress with patients.
 
-This repository is through Phase 4: application shell, Supabase Auth, the clinical schema, row-level security, a role-aware workspace, clinic-scoped patient and treatment charts, and guided facial photography. There is no comparison engine yet.
+This repository is through the MVP: clinic charts, guided facial photography, side-by-side comparisons, and a patient portal for released sessions and shared comparisons. Hosted deployment is not configured.
 
 ## Requirements
 
@@ -72,10 +72,14 @@ A second clinic in the seed exists only to prove isolation. Do not reuse these a
 | `npm test` | Unit and component tests |
 | `npm run build` | Production build |
 
+## Local demonstration photographs
+
+`local-photos/` holds synthetic front-facing before and after portraits for this machine only. The directory is gitignored. Do not commit or push those files, and do not treat them as patient records. A database reset does not put them back into Storage.
+
 ## Clinical data
 
 Do not upload real patient photographs or other health information to this prototype. Before any clinical deployment, review privacy, security, hosting, and LGPD obligations. Vercel Hobby is for personal, non-commercial use and is not the production plan.
 
 ## Next step
 
-Phase 5 is comparison. See `docs/implementation-plan.md`. Do not start it until that phase is approved.
+Phase 7 is hosted deployment and the full automated browser suite. Read `docs/specification.md` before continuing. Do not deploy until a non-production Supabase project is configured.

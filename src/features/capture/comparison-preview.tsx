@@ -18,7 +18,9 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
   function savedAlignment(id: string, beforeId: string) {
     const afterId = session.photos.find((photo) => photo.angleId === id)?.id;
     const saved = session.comparisons.find((item) => item.beforeId === beforeId && item.afterId === afterId);
-    return saved ? { x: saved.x, y: saved.y, rotation: saved.rotation, scale: saved.scale } : { x: 0, y: 0, rotation: 0, scale: 1 };
+    return saved
+      ? { x: saved.x, y: saved.y, rotation: saved.rotation, scale: saved.scale, aligned: saved.aligned }
+      : { x: 0, y: 0, rotation: 0, scale: 1, aligned: false };
   }
   const [alignment, setAlignment] = useState(() => savedAlignment(angles[0]?.id ?? "", referenceId));
   const [message, setMessage] = useState("");
@@ -70,14 +72,18 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
           </label>
         ))}
       </fieldset>
-      <p className="text-sm text-muted-foreground">{alignment.x || alignment.y || alignment.rotation || alignment.scale !== 1 ? "Alignment adjusted" : "Original alignment"}</p>
+      <label className="mt-4 flex min-h-11 items-center gap-3 text-base font-medium">
+        <input type="checkbox" checked={alignment.aligned} onChange={(event) => setAlignment({ ...alignment, aligned: event.target.checked })} />
+        Mark this comparison as aligned
+      </label>
+      <p className="text-sm font-medium" role="status">{alignment.aligned ? "Aligned" : "Not aligned"}</p>
       <button type="button" disabled={saving} className="mt-4 min-h-11 rounded-md bg-primary px-5 font-medium text-primary-foreground disabled:opacity-50" onClick={async () => {
         const beforePhoto = session.references.find((photo) => photo.id === referenceId && photo.angleId === angleId);
         const afterPhoto = session.photos.find((photo) => photo.angleId === angleId);
         if (!beforePhoto || !afterPhoto) return;
         setSaving(true);
         try {
-          const result = await saveComparisonAction({ beforeId: beforePhoto.id, afterId: afterPhoto.id, ...alignment });
+          const result = await saveComparisonAction({ beforeId: beforePhoto.id, afterId: afterPhoto.id, x: alignment.x, y: alignment.y, rotation: alignment.rotation, scale: alignment.scale, aligned: alignment.aligned });
           setMessage(result.message);
           if (result.ok) router.refresh();
         } catch {

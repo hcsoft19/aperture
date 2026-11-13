@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isAuthEntryPath, isPublicPath } from "@/lib/auth/paths";
+import { isAuthEntryPath, isPublicPath, safeNextPath } from "@/lib/auth/paths";
 import { readSupabaseEnv } from "@/lib/supabase/env";
 
 function copyAuthHeaders(from: NextResponse, to: NextResponse) {
@@ -70,7 +70,8 @@ export async function updateSession(request: NextRequest) {
 
   if (isAuthenticated && isAuthEntryPath(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/home";
+    const destination = safeNextPath(request.nextUrl.searchParams.get("next"));
+    url.pathname = isAuthEntryPath(destination) ? "/home" : destination;
     url.search = "";
     const redirectResponse = NextResponse.redirect(url);
     copyAuthHeaders(supabaseResponse, redirectResponse);

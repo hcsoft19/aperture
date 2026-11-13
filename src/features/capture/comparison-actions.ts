@@ -11,6 +11,7 @@ const comparisonSchema = z.object({
   y: z.number().finite().min(-50).max(50),
   rotation: z.number().finite().min(-30).max(30),
   scale: z.number().finite().min(0.5).max(2),
+  aligned: z.boolean(),
 });
 
 export async function saveComparisonAction(input: z.infer<typeof comparisonSchema>) {
@@ -35,12 +36,33 @@ export async function saveComparisonAction(input: z.infer<typeof comparisonSchem
     return { ok: false, message: "Choose completed photographs of the same angle and treatment." };
   }
 
-  const { error: saveError } = await supabase.from("comparisons").insert({
-    treatment_id: before.photo_sessions.treatment_id,
-    before_photo_id: before.id,
-    after_photo_id: after.id,
-    created_by: workspace.user.id,
-    alignment: { x: parsed.data.x, y: parsed.data.y, rotation: parsed.data.rotation, scale: parsed.data.scale },
-  });
-  return saveError ? { ok: false, message: "The comparison could not be saved." } : { ok: true, message: "Comparison saved." };
+  const alignment = {
+    x: parsed.data.x,
+    y: parsed.data.y,
+    rotation: parsed.data.rotation,
+    scale: parsed.data.scale,
+    aligned: parsed.data.aligned,
+  };
+  const { data: existing } = await supabase
+    .from("comparisons")
+    .select("id")
+    .eq("before_photo_id", before.id)
+    .eq("after_photo_id", after.id)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error: saveError } = existing
+    ? await supabase.from("comparisons").update({ alignment }).eq("id", existing.id)
+    : await supabase.from("comparisons").insert({
+        treatment_id: before.photo_sessions.treatment_id,
+        before_photo_id: before.id,
+        after_photo_id: after.id,
+        created_by: workspace.user.id,
+        alignment,
+      });
+  return saveError
+    ? { ok: false, message: "The comparison could not be saved." }
+    : { ok: true, message: parsed.data.aligned ? "Aligned comparison saved." : "Comparison saved." };
 }

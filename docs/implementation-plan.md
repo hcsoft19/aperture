@@ -66,7 +66,7 @@ Not included: patient and treatment screens, camera, comparisons, invitations, o
 
 Patient and treatment create, edit, and search, scoped to the active clinic. Detail pages show photograph history. Zod schemas and server actions validate every save.
 
-### Phase 4 — Guided facial photography (this change)
+### Phase 4 — Guided facial photography
 
 The camera loads the protocol version from the database. Browser camera with permission and incompatibility handling, rear camera by default, five angles, baseline guides, follow-up reference overlay that is not saved, review, retake, and direct-to-Storage upload of the original. Session statuses: draft, completed, cancelled. Incomplete sessions require a reason. Store hash, dimensions, source, and upload status. Clean up orphaned files. Quality checks are a manual checklist. Photography consent is recorded before a photograph is accepted.
 
@@ -76,7 +76,7 @@ Select baseline and follow-up photos of the same protocol angle. Side-by-side an
 
 ### Phase 6 — Patient portal
 
-Invitations, account linking, revocable sharing, timeline, and patient-only reads of released photos and comparisons.
+Done. Invitations, account linking, revocable sharing, a patient timeline, and patient-only reads of released photos and comparisons. A completed session can be released or hidden. A saved comparison can be shared or revoked. The invitation link is shown to the clinic once and expires in seven days. The behavior, local data, and continuation notes are in `docs/specification.md`.
 
 ### Phase 7 — Quality and deployment
 
@@ -110,5 +110,5 @@ RLS tests, Playwright for sign-in, patient isolation, capture review, and compar
 ## Configuration still required
 
 - For a hosted project: URL, publishable key, Auth redirect URLs, and `supabase db push` of the migrations. Do not push `supabase/seed.sql` to a project that will hold real patients.
-- Approval before Phase 5
-- Approval before any commit or deployment
+- A non-production Supabase project before Phase 7 deployment. Do not deploy this prototype with real patient photographs.
+- Local demonstration portraits stay in gitignored `local-photos/` and in the local Storage bucket. They are not part of the repository.

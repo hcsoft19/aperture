@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInAction } from "@/features/auth/actions";
+import { safeNextPath } from "@/lib/auth/paths";
 import { PasswordField } from "@/features/auth/password-field";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 
@@ -31,7 +32,7 @@ export function LoginForm() {
 
   const onSubmit = form.handleSubmit(async (values) => {
     setServerMessage(null);
-    const result = await signInAction(values);
+    const result = await signInAction(values, safeNextPath(searchParams.get("next")));
     if (result?.status === "error") {
       setServerMessage(result.message);
     }

@@ -7,6 +7,8 @@ import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { formatChartDate, treatmentStatusLabel } from "@/features/patients/labels";
 import { countPhotographs, getPatient, listTreatments } from "@/features/patients/queries";
+import { InvitePanel } from "@/features/sharing/invite-panel";
+import { getChartLink } from "@/features/sharing/queries";
 import { isUuid } from "@/lib/ids";
 
 export const metadata: Metadata = {
@@ -44,7 +46,10 @@ async function PatientChartContent({ params }: ChartPageProps) {
     return <ChartMessage title="Chart" message="This chart is not available." />;
   }
 
-  const treatments = await listTreatments(patientId);
+  const [treatments, link] = await Promise.all([
+    listTreatments(patientId),
+    getChartLink(patientId),
+  ]);
   const photographs = await countPhotographs(
     patientId,
     treatments.map((treatment) => treatment.id),
@@ -109,6 +114,12 @@ async function PatientChartContent({ params }: ChartPageProps) {
             ))}
           </ul>
         )}
+      </div>
+      <div>
+        <h2 className="text-lg font-semibold">Patient account</h2>
+        <div className="mt-3">
+          <InvitePanel patientId={patient.id} linked={link.linked} invitation={link.invitation} />
+        </div>
       </div>
       <div>
         <h2 className="text-lg font-semibold">Photographs</h2>

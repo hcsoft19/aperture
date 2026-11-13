@@ -152,13 +152,14 @@ export type TreatmentSessionSummary = {
   sessionType: "baseline" | "follow_up";
   status: "draft" | "completed" | "cancelled";
   sessionDate: string;
+  releasedToPatient: boolean;
 };
 
 export async function listTreatmentSessions(treatmentId: string): Promise<TreatmentSessionSummary[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("photo_sessions")
-    .select("id, session_type, status, session_date")
+    .select("id, session_type, status, session_date, released_to_patient")
     .eq("treatment_id", treatmentId)
     .order("session_date", { ascending: false });
 
@@ -171,6 +172,7 @@ export async function listTreatmentSessions(treatmentId: string): Promise<Treatm
     sessionType: session.session_type,
     status: session.status,
     sessionDate: session.session_date,
+    releasedToPatient: session.released_to_patient,
   }));
 }
 
