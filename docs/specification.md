@@ -175,4 +175,4 @@ Security-definer helpers use an empty `search_path`. `pgcrypto` is in the `exten
 
 ## How to continue
 
-Start with Phase 7 only when a non-production Supabase project is available. Until then, keep tests and access checks local. Preserve clinic isolation, immutable originals, and the rule that patients see released sessions and unrevoked shared comparisons only. Keep new demonstration images in `local-photos/` and out of git.
+The prototype host already exists. Continue with the open Phase 7 checks, or deploy the `production` branch only after confirmation. Preserve clinic isolation, immutable originals, and the rule that patients see released sessions and unrevoked shared comparisons only. Keep new clinical demonstration images in `local-photos/` and out of git. Leave the hosted project free of real patient data.
