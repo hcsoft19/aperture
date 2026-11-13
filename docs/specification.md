@@ -31,7 +31,7 @@ Phases 1 through 6 are implemented in this repository:
 | Vercel project | `aperture` on the `hcsoft19-gmailcoms-projects` team |
 | Supabase project | `aperture`, ref `pnsrvrsgbkafkqqrdxcx` |
 | API | https://pnsrvrsgbkafkqqrdxcx.supabase.co |
-| Live git commit | `a4b13e4` on `main` |
+| Release source | `production`; verify the deployed SHA in Vercel |
 
 `https://aperture.vercel.app` belongs to a different product. Do not set `NEXT_PUBLIC_SITE_URL` to it.
 
@@ -41,7 +41,7 @@ Vercel environment variables are `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABA
 
 Supabase Auth site URL is that same host. The allow list includes `/auth/callback` and `/auth/callback?next=/reset-password` for both Vercel hosts and for `localhost:3000` and `127.0.0.1:3000`.
 
-`development` and `production` are ahead of the live site. They contain the blush landing page and the refined clinic home. Deploying `production` is a separate confirmation. Do not assume a push to `production` updates Vercel; the current production deployment was created from `main`.
+Release the merged `production` branch with Vercel target `production`. A push to `production` can build a Preview without updating the public site. Verify that the primary hostname resolves to a `READY` Production deployment with the intended Git SHA, then visually check the home page and sign-in screen. A request to fix the hosted site authorizes that release; otherwise obtain deployment confirmation.
 
 ## Not finished
 
@@ -50,7 +50,7 @@ Phase 7 is partly open:
 - A full row-level-security test suite.
 - Playwright coverage for sign-in, clinic isolation, capture review, and comparison.
 - An accessibility pass beyond the rules already in the UI.
-- Deploying the `production` branch so the live site matches the latest interface.
+- Keep the public deployment aligned with approved `production` releases; verify its alias and commit after publishing.
 - A privacy, security, legal, and LGPD review before any commercial or clinical launch. Vercel Hobby is not the clinical hosting plan.
 
 Do not add a separate backend, a mobile app, or a new paid service. Do not put the Supabase service-role key in the repo or in a `NEXT_PUBLIC_` variable.
@@ -59,7 +59,7 @@ Do not add a separate backend, a mobile app, or a new paid service. Do not put t
 
 The app git root is this directory. The parent folder `aesthetic_photos` is a different, empty git repository. Run git commands here.
 
-Remote: `https://github.com/hcsoft19/aperture.git`. GitHub's default branch is `main`. `development` and `production` currently contain the later interface work. `main` and `phase-5-comparison` stop at the patient-portal commit, which is what Vercel is serving. Do not force-push.
+Remote: `https://github.com/hcsoft19/aperture.git`. GitHub's default branch is `main`. `development` and `production` currently contain the later interface work. `main` and `phase-5-comparison` stop at the patient-portal commit; use `production` for approved interface releases. Do not force-push.
 
 Another local Supabase project, shiftshots, uses the default Supabase ports. Leave it running. Aperture uses the offset ports below.
 

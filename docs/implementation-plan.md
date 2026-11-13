@@ -86,7 +86,7 @@ The signed-in clinic home greets the active clinic and offers the patient librar
 
 ### Phase 7 — Quality and deployment
 
-A demonstration host is up. Supabase project `aperture` (`pnsrvrsgbkafkqqrdxcx`) has the migrations and the synthetic seed. Vercel serves [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app) from `main` at the patient-portal commit. The later landing and clinic-home redesign is on `development` and `production`, and it is not what that URL currently serves.
+A demonstration host is up. Supabase project `aperture` (`pnsrvrsgbkafkqqrdxcx`) has the migrations and the synthetic seed. The primary Vercel host is [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app). Release the approved interface from the merged `production` branch using a Production deployment. Git pushes can create Preview deployments only; check the production alias and deployed commit before reporting that the live site is updated.
 
 Still open: a full RLS test suite, Playwright for sign-in, patient isolation, capture review, and comparison, and an accessibility pass. A commercial launch still needs a privacy, security, legal, and hosting review, including LGPD. Vercel Hobby is not the clinical hosting plan.
 
