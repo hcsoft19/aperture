@@ -4,7 +4,7 @@ Read this file before changing the product. It is the handoff for the next perso
 
 ## Product
 
-Aperture is a mobile-first web app for one medical-aesthetics clinic to photograph a treatment, compare a later visit with the baseline, and share only the photographs the clinic releases. English interface. Light theme. Figtree is the typeface. The signed-in app uses warm neutral surfaces and a muted green accent. The public landing page uses a blush and wine palette.
+Aperture is a mobile-first web app for one medical-aesthetics clinic to photograph a treatment, compare a later visit with the baseline, and share only the photographs the clinic releases. English interface. Light theme. Figtree is the typeface. The public landing page and signed-in app share white surfaces, blush panels, wine accents, and Figtree typography.
 
 A clinic must never see another clinic's records. A patient must never see another patient's records, unreleased sessions, or a comparison the clinic has not shared.
 
