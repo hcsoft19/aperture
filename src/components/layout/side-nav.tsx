@@ -16,7 +16,7 @@ export function SideNav({ kind }: { kind: WorkspaceKind }) {
   const items = navigationFor(kind);
 
   return (
-    <nav aria-label="Workspace" className="flex flex-col gap-1">
+    <nav aria-label="Workspace" className="flex flex-col gap-2">
       {items.map((item) => {
         const active = isActive(pathname, item.href);
         const Icon = item.icon;
@@ -27,7 +27,7 @@ export function SideNav({ kind }: { kind: WorkspaceKind }) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+              "flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-base font-medium transition-colors",
               active
                 ? "bg-accent text-accent-foreground"
                 : "text-foreground hover:bg-muted",
