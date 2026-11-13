@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { CaptureWizard } from "@/features/capture/capture-wizard";
+import { ComparisonPreview } from "@/features/capture/comparison-preview";
 import { getCaptureSession } from "@/features/capture/queries";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { staffChartContext } from "@/features/patients/access";
@@ -47,6 +48,7 @@ async function CaptureSessionContent({ params }: CaptureSessionPageProps) {
         Guided capture
       </Link>
       <CaptureWizard session={session} />
+      {session.status === "completed" && session.sessionType === "follow_up" ? <ComparisonPreview session={session} /> : null}
     </section>
   );
 }
