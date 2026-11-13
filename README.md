@@ -2,7 +2,7 @@
 
 Mobile-first web app for medical aesthetic clinics to document treatment photographs, compare them over time, and share selected progress with patients.
 
-This repository is through the MVP: clinic charts, guided facial photography, side-by-side comparisons, and a patient portal for released sessions and shared comparisons. Hosted deployment is not configured.
+This repository is through the MVP: clinic charts, guided facial photography, side-by-side comparisons, and a patient portal for released sessions and shared comparisons. A prototype is hosted for demonstration. It is not a clinical system.
 
 ## Requirements
 
@@ -72,6 +72,16 @@ A second clinic in the seed exists only to prove isolation. Do not reuse these a
 | `npm test` | Unit and component tests |
 | `npm run build` | Production build |
 
+## Hosted prototype
+
+The public app is [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app). The same deployment also answers at `https://aperture-sigma-gilt.vercel.app`. `https://aperture.vercel.app` is a different product and is not this app.
+
+That deployment was built from `main` at the patient-portal commit. The blush landing page and the refined clinic home are on `development` and `production`, and they are not on the live site until those branches are deployed.
+
+The hosted Supabase project is `aperture`, ref `pnsrvrsgbkafkqqrdxcx`, API `https://pnsrvrsgbkafkqqrdxcx.supabase.co`. Its database has the five migrations and the synthetic seed, including the two demo accounts below. Do not add real patients to it. Vercel has only the public URL, the publishable key, and `NEXT_PUBLIC_SITE_URL`. The service-role key is not in Vercel and must not be added.
+
+Auth site URL is the Vercel hostname above. Redirects include `/auth/callback` and `/auth/callback?next=/reset-password` for that host, the alternate Vercel host, and local development.
+
 ## Local demonstration photographs
 
 `local-photos/` holds synthetic front-facing before and after portraits for this machine only. The directory is gitignored. Do not commit or push those files, and do not treat them as patient records. A database reset does not put them back into Storage.
@@ -82,4 +92,4 @@ Do not upload real patient photographs or other health information to this proto
 
 ## Next step
 
-Phase 7 is hosted deployment and the full automated browser suite. Read `docs/specification.md` before continuing. Do not deploy until a non-production Supabase project is configured.
+The remaining work is the automated browser suite, a fuller access-control test pass, and a privacy review before any real clinical use. Read `docs/specification.md` before continuing. Do not deploy a newer branch, or put real patient photographs on the hosted project, without confirmation.

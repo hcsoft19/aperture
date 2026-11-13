@@ -4,7 +4,7 @@ Read this file before changing the product. It is the handoff for the next perso
 
 ## Product
 
-Aperture is a mobile-first web app for one medical-aesthetics clinic to photograph a treatment, compare a later visit with the baseline, and share only the photographs the clinic releases. English interface. Light theme. Warm neutral surfaces with a teal accent. Figtree is the typeface.
+Aperture is a mobile-first web app for one medical-aesthetics clinic to photograph a treatment, compare a later visit with the baseline, and share only the photographs the clinic releases. English interface. Light theme. Figtree is the typeface. The signed-in app uses warm neutral surfaces and a muted green accent. The public landing page uses a blush and wine palette.
 
 A clinic must never see another clinic's records. A patient must never see another patient's records, unreleased sessions, or a comparison the clinic has not shared.
 
@@ -20,16 +20,38 @@ Phases 1 through 6 are implemented in this repository:
 4. Guided facial capture. The camera loads `FACE_STANDARD` from the database. Originals upload straight to a private bucket and stay immutable.
 5. Comparison of one baseline photograph and one follow-up of the same angle. Side-by-side view, a keyboard slider, and alignment metadata only. No smoothing, reshaping, or generated pixels.
 6. Patient portal. A clinic can invite a patient, release a completed session, and share or revoke a comparison. The patient sees only that released material.
+7. Public landing page and clinic home. The landing page explains the workflow and shows an interactive side-by-side, baseline, and follow-up preview. The clinic home offers the patient library, a new capture, and a new chart.
+
+## Hosted prototype
+
+| Item | Value |
+| --- | --- |
+| App | https://aperture-hcsoft19-gmailcoms-projects.vercel.app |
+| Alternate app host | https://aperture-sigma-gilt.vercel.app |
+| Vercel project | `aperture` on the `hcsoft19-gmailcoms-projects` team |
+| Supabase project | `aperture`, ref `pnsrvrsgbkafkqqrdxcx` |
+| API | https://pnsrvrsgbkafkqqrdxcx.supabase.co |
+| Live git commit | `a4b13e4` on `main` |
+
+`https://aperture.vercel.app` belongs to a different product. Do not set `NEXT_PUBLIC_SITE_URL` to it.
+
+The hosted database has the five migrations and `supabase/seed.sql`. The demo accounts in the seed section below can sign in on the public URL. That was an explicit choice for this prototype. Do not add real patients, and do not copy that seed onto a project that will hold real records.
+
+Vercel environment variables are `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SITE_URL`. The site URL is the first app host above. The service-role key is not stored there.
+
+Supabase Auth site URL is that same host. The allow list includes `/auth/callback` and `/auth/callback?next=/reset-password` for both Vercel hosts and for `localhost:3000` and `127.0.0.1:3000`.
+
+`development` and `production` are ahead of the live site. They contain the blush landing page and the refined clinic home. Deploying `production` is a separate confirmation. Do not assume a push to `production` updates Vercel; the current production deployment was created from `main`.
 
 ## Not finished
 
-Phase 7 is still open:
+Phase 7 is partly open:
 
 - A full row-level-security test suite.
 - Playwright coverage for sign-in, clinic isolation, capture review, and comparison.
 - An accessibility pass beyond the rules already in the UI.
-- Hosted deployment. Do this only after a non-production Supabase project exists. Do not deploy with real patient data. Vercel Hobby is not the clinical hosting plan.
-- A privacy, security, legal, and LGPD review before any commercial or clinical launch.
+- Deploying the `production` branch so the live site matches the latest interface.
+- A privacy, security, legal, and LGPD review before any commercial or clinical launch. Vercel Hobby is not the clinical hosting plan.
 
 Do not add a separate backend, a mobile app, or a new paid service. Do not put the Supabase service-role key in the repo or in a `NEXT_PUBLIC_` variable.
 
@@ -37,7 +59,7 @@ Do not add a separate backend, a mobile app, or a new paid service. Do not put t
 
 The app git root is this directory. The parent folder `aesthetic_photos` is a different, empty git repository. Run git commands here.
 
-Remote: `https://github.com/hcsoft19/aperture.git`. GitHub's default branch is `main`. Integration branches are `development`, `main`, and `production`. Feature branches merge into those three with a normal merge commit. Do not force-push.
+Remote: `https://github.com/hcsoft19/aperture.git`. GitHub's default branch is `main`. `development` and `production` currently contain the later interface work. `main` and `phase-5-comparison` stop at the patient-portal commit, which is what Vercel is serving. Do not force-push.
 
 Another local Supabase project, shiftshots, uses the default Supabase ports. Leave it running. Aperture uses the offset ports below.
 
@@ -75,7 +97,7 @@ npx supabase start
 | Studio | http://127.0.0.1:54423 |
 | Mailpit | http://127.0.0.1:54424 |
 
-`npx supabase db reset` reapplies migrations and `supabase/seed.sql`. Use that seed only on the local database. Do not push it to a project that will hold real patients.
+`npx supabase db reset` reapplies migrations and `supabase/seed.sql`. The current hosted prototype also has that seed. Do not apply it to a project that will hold real patients.
 
 Useful checks: `npm run lint`, `npm test`, and `npx tsc --noEmit`.
 
@@ -109,7 +131,7 @@ Local-only records created after the seed, including extra users, sessions, invi
 
 On this machine those two files are also the objects behind Sam Rivera's uploaded front baseline and front follow-up in the local `clinical-photos` bucket. The comparison of that pair is shared with Blake. A database reset removes that link. Put the files back through the capture flow, or upload them to the private bucket and store the hash, dimensions, and size on the photo row. Do not bypass immutability in application code. The shortest side must be at least 1000 pixels, the file must be JPEG, PNG, or WebP, and it must be at most 10 MB.
 
-Do not download or store photographs of a real patient.
+Do not download or store photographs of a real patient. The landing page's committed file `public/demo-portraits.png` is a separate fictional marketing illustration. It is not a clinical photograph and it is not stored in the private bucket.
 
 ## Clinical behavior
 
@@ -153,4 +175,4 @@ Security-definer helpers use an empty `search_path`. `pgcrypto` is in the `exten
 
 ## How to continue
 
-Start with Phase 7 only when a non-production Supabase project is available. Until then, keep tests and access checks local. Preserve clinic isolation, immutable originals, and the rule that patients see released sessions and unrevoked shared comparisons only. Keep new demonstration images in `local-photos/` and out of git.
+The prototype host already exists. Continue with the open Phase 7 checks, or deploy the `production` branch only after confirmation. Preserve clinic isolation, immutable originals, and the rule that patients see released sessions and unrevoked shared comparisons only. Keep new clinical demonstration images in `local-photos/` and out of git. Leave the hosted project free of real patient data.

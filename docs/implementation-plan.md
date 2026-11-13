@@ -44,7 +44,7 @@ Completed sessions will not be silently editable. Consent is required before a p
 
 ## Phases
 
-### Phase 1 — Foundation (this change)
+### Phase 1 — Foundation
 
 - Next.js, TypeScript strict, Tailwind, ESLint, shadcn/ui
 - Supabase browser client, server client, and session proxy
@@ -56,7 +56,7 @@ Completed sessions will not be silently editable. Consent is required before a p
 
 Not included: SQL, RLS, organizations, patients, camera, comparisons, patient portal, deployment.
 
-### Phase 2 — Database and authentication (this change)
+### Phase 2 — Database and authentication
 
 Migrations for the tables above, profiles created from the auth user, organization bootstrap for the first professional, membership roles, and RLS that isolates organizations. Seed only synthetic people. Server-side role lookup switches navigation between the professional shell, the patient shell, and clinic setup. Membership changes go through security-definer functions. Audit rows cover clinic creation, membership, consent, session release, and comparison sharing.
 
@@ -78,9 +78,17 @@ Select baseline and follow-up photos of the same protocol angle. Side-by-side an
 
 Done. Invitations, account linking, revocable sharing, a patient timeline, and patient-only reads of released photos and comparisons. A completed session can be released or hidden. A saved comparison can be shared or revoked. The invitation link is shown to the clinic once and expires in seven days. The behavior, local data, and continuation notes are in `docs/specification.md`.
 
+### Interface after the MVP
+
+The public landing page is a blush and wine marketing page. It explains guided capture, unchanged originals, and revocable sharing, and it includes an interactive before-and-after preview. That preview uses the committed illustration `public/demo-portraits.png`. It is labeled as a fictional demonstration, not a patient result.
+
+The signed-in clinic home greets the active clinic and offers the patient library, a new capture, and a new chart. The app shell remains a warm neutral surface with a muted green accent.
+
 ### Phase 7 — Quality and deployment
 
-RLS tests, Playwright for sign-in, patient isolation, capture review, and comparison. Accessibility pass. Vercel deployment only after a non-production Supabase project is configured. Document that a commercial launch needs a privacy, security, legal, and hosting review, including LGPD.
+A demonstration host is up. Supabase project `aperture` (`pnsrvrsgbkafkqqrdxcx`) has the migrations and the synthetic seed. Vercel serves [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app) from `main` at the patient-portal commit. The later landing and clinic-home redesign is on `development` and `production`, and it is not what that URL currently serves.
+
+Still open: a full RLS test suite, Playwright for sign-in, patient isolation, capture review, and comparison, and an accessibility pass. A commercial launch still needs a privacy, security, legal, and hosting review, including LGPD. Vercel Hobby is not the clinical hosting plan.
 
 ## Security rules that start now
 
@@ -101,14 +109,14 @@ RLS tests, Playwright for sign-in, patient isolation, capture review, and compar
 5. Email confirmation follows the Supabase project setting.
 6. The env variable is `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. A legacy anon key can be pasted there until the project is rotated.
 7. Node.js 22 or newer is required. The machine used for this scaffold was on Node 20.18, which is below the current package engines.
-8. Local Supabase runs on offset ports because another local project already uses the defaults. No hosted project or production credentials were created.
-9. The visual theme is a warm neutral surface with a teal accent. Light mode only.
+8. Local Supabase runs on offset ports because another local project already uses the defaults. A separate hosted prototype now exists; its addresses are in `docs/specification.md`.
+9. The signed-in app is a warm neutral surface with a muted green accent. The public landing page is blush and wine. Light mode only.
 10. Staff membership chooses the professional shell. A linked patient with no staff membership sees the patient shell. A new account sees clinic setup.
 11. Playwright is deferred until Phase 7, when there is a workflow to drive.
 12. Vercel Hobby and Supabase Free are for this prototype only, and not for real clinical data.
 
 ## Configuration still required
 
-- For a hosted project: URL, publishable key, Auth redirect URLs, and `supabase db push` of the migrations. Do not push `supabase/seed.sql` to a project that will hold real patients.
-- A non-production Supabase project before Phase 7 deployment. Do not deploy this prototype with real patient photographs.
-- Local demonstration portraits stay in gitignored `local-photos/` and in the local Storage bucket. They are not part of the repository.
+- The current hosted project already has its URL, publishable key, Auth redirects, migrations, and synthetic seed. Do not push `supabase/seed.sql` onto any later project that will hold real patients.
+- Do not replace the live deployment, or upload real patient photographs, without confirmation.
+- Local demonstration portraits stay in gitignored `local-photos/` and in the local Storage bucket. They are not part of the repository. The landing illustration in `public/demo-portraits.png` is a separate committed marketing image.
