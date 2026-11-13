@@ -76,7 +76,7 @@ A second clinic in the seed exists only to prove isolation. Do not reuse these a
 
 The public app is [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app). The same deployment also answers at `https://aperture-sigma-gilt.vercel.app`. `https://aperture.vercel.app` is a different product and is not this app.
 
-That deployment was built from `main` at the patient-portal commit. The blush landing page and the refined clinic home are on `development` and `production`, and they are not on the live site until those branches are deployed.
+The release source is `production`. The approved home page, authentication screens, and clinic workspace share white surfaces, blush panels, wine accents, and Figtree typography. A Git push can create a Preview deployment without updating the public host: publish the merged commit with Vercel target `production` and verify the primary URL after the deployment is `READY`. Never treat a successful push or a ready Preview as proof that the public site changed.
 
 The hosted Supabase project is `aperture`, ref `pnsrvrsgbkafkqqrdxcx`, API `https://pnsrvrsgbkafkqqrdxcx.supabase.co`. Its database has the five migrations and the synthetic seed, including the two demo accounts below. Do not add real patients to it. Vercel has only the public URL, the publishable key, and `NEXT_PUBLIC_SITE_URL`. The service-role key is not in Vercel and must not be added.
 
