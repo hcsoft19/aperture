@@ -32,6 +32,7 @@ export type CapturePhoto = {
   id: string;
   angleId: string;
   previewUrl: string | null;
+  capturedAt?: string | null;
 };
 
 export type CaptureSessionView = {
@@ -246,6 +247,7 @@ async function assemble(
       id: photo.id,
       angleId: photo.angle_id,
       previewUrl: previewUrls.get(photo.storage_path) ?? null,
+      capturedAt: photo.captured_at,
     })),
   };
 }
@@ -268,15 +270,7 @@ async function baselineReferences(
     throw new Error("Could not load the baseline photographs.");
   }
 
-  const latest = new Map<string, { id: string; angle_id: string; storage_path: string; captured_at: string | null }>();
-  for (const photo of data ?? []) {
-    const current = latest.get(photo.angle_id);
-    if (!current || (photo.captured_at ?? "") > (current.captured_at ?? "")) {
-      latest.set(photo.angle_id, photo);
-    }
-  }
-
-  return [...latest.values()];
+  return (data ?? []).sort((left, right) => (right.captured_at ?? "").localeCompare(left.captured_at ?? ""));
 }
 
 async function signedUrls(
