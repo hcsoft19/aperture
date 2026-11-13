@@ -44,6 +44,7 @@ export type CaptureSessionView = {
   protocol: CaptureProtocol;
   photos: CapturePhoto[];
   references: CapturePhoto[];
+  comparisons: { beforeId: string; afterId: string; x: number; y: number; rotation: number; scale: number }[];
 };
 
 const CONSENT_PURPOSE = "Clinical photography";
@@ -215,6 +216,17 @@ async function assemble(
     ...uploaded.map((photo) => photo.storage_path),
     ...references.map((photo) => photo.storage_path),
   ]);
+  const photoIds = uploaded.map((photo) => photo.id);
+  const { data: saved } = photoIds.length
+    ? await supabase.from("comparisons").select("before_photo_id, after_photo_id, alignment").in("after_photo_id", photoIds).order("created_at", { ascending: false })
+    : { data: [] };
+  const comparisons = (saved ?? []).flatMap((item) => {
+    const value = item.alignment;
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const { x, y, rotation, scale } = value;
+    if (typeof x !== "number" || typeof y !== "number" || typeof rotation !== "number" || typeof scale !== "number") return [];
+    return [{ beforeId: item.before_photo_id, afterId: item.after_photo_id, x, y, rotation, scale }];
+  });
 
   return {
     id: data.id,
@@ -224,6 +236,7 @@ async function assemble(
     treatmentName: treatment.name,
     bodyArea: treatment.body_area,
     protocol,
+    comparisons,
     photos: uploaded.map((photo) => ({
       id: photo.id,
       angleId: photo.angle_id,
