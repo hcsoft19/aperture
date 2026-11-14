@@ -10,6 +10,8 @@ import {
   saveRevisionAction,
 } from "@/features/editor/actions";
 import { renderEditBlob } from "@/features/editor/export-image";
+import { BackgroundTool } from "@/features/editor/background-tool";
+import type { RenderBackgroundResult } from "@/features/editor/background-renderer";
 import { commitHistory, createHistory, redoHistory, undoHistory, type History } from "@/features/editor/history";
 import { cropForAspect } from "@/features/editor/layout";
 import { recordSuggestionAction } from "@/features/photo-intelligence/actions";
@@ -25,7 +27,17 @@ import {
   type PrivacyMask,
 } from "@/features/editor/schema";
 
-type Tool = "masks" | "crop" | "rotate" | "canvas";
+type Tool = "masks" | "crop" | "rotate" | "canvas" | "background";
+
+const tools: Tool[] = ["masks", "crop", "rotate", "canvas", "background"];
+
+const toolLabel: Record<Tool, string> = {
+  masks: "Privacy bars",
+  crop: "Crop",
+  rotate: "Rotate",
+  canvas: "Canvas",
+  background: "Background",
+};
 
 const backgroundLabel: Record<(typeof canvasBackgrounds)[number], string> = {
   original: "Original bounds",
@@ -66,6 +78,8 @@ export function PhotoEditor({
   const [message, setMessage] = useState("");
   const [segmentationOn, setSegmentationOn] = useState(false);
   const [segmentationNote, setSegmentationNote] = useState("");
+  const [backgroundPreview, setBackgroundPreview] = useState<RenderBackgroundResult | null>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const framing = suggestFraming(face);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -145,7 +159,7 @@ export function PhotoEditor({
     try {
       const currentRevision = dirty || !revisionId ? await save() : revisionId;
       if (!currentRevision) return;
-      const rendered = await renderEditBlob(bitmap, edit, mimeType);
+      const rendered = await renderEditBlob(exportSource(bitmap, edit, backgroundPreview), edit, mimeType);
       const url = URL.createObjectURL(rendered.blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -189,6 +203,15 @@ export function PhotoEditor({
     }
   }
 
+  useEffect(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas || !backgroundPreview || showOriginal) return;
+    canvas.width = backgroundPreview.width;
+    canvas.height = backgroundPreview.height;
+    canvas.getContext("2d")?.putImageData(backgroundPreview.imageData, 0, 0);
+  }, [backgroundPreview, showOriginal]);
+
+  const showBackground = Boolean(backgroundPreview && edit.backgroundRemoval.enabled && !showOriginal);
   const stageBackground = edit.canvas.background === "original" ? "#E6E6E6" : edit.canvas.background;
   const display = showOriginal ? emptyEdit() : edit;
 
@@ -262,7 +285,18 @@ export function PhotoEditor({
           {/* The photograph is loaded into a bitmap for export. This element is the editing surface. */}
           {/* The editing surface uses the signed original. next/image would resize it and hide the element used for pointer mapping. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img ref={imageRef} src={signedUrl} alt={angleName} className="mx-auto max-h-[70vh] w-full object-contain" draggable={false} />
+          <img
+            ref={imageRef}
+            src={signedUrl}
+            alt={angleName}
+            className={`mx-auto max-h-[70vh] w-full object-contain ${showBackground ? "hidden" : ""}`}
+            draggable={false}
+          />
+          <canvas
+            ref={previewCanvasRef}
+            aria-label={`${angleName} with the selected background`}
+            className={`mx-auto max-h-[70vh] w-full object-contain ${showBackground ? "" : "hidden"}`}
+          />
           <div className="pointer-events-none absolute inset-0">
             {display.privacyMasks.map((mask) => (
               <button
@@ -286,7 +320,7 @@ export function PhotoEditor({
                   const startY = event.clientY;
                   const origin = mask;
                   const move = (next: PointerEvent) => {
-                    const bounds = imageRef.current?.getBoundingClientRect();
+                    const bounds = (showBackground ? previewCanvasRef.current : imageRef.current)?.getBoundingClientRect();
                     if (!bounds) return;
                     changeMask(
                       origin.id,
@@ -314,9 +348,9 @@ export function PhotoEditor({
         </div>
       </div>
       <div className="flex flex-wrap gap-2 lg:hidden" role="group" aria-label="Editing tools">
-        {(["masks", "crop", "rotate", "canvas"] as const).map((item) => (
-          <button key={item} type="button" aria-pressed={tool === item} className="min-h-11 rounded-md border px-3 capitalize" onClick={() => setTool(item)}>
-            {item}
+        {tools.map((item) => (
+          <button key={item} type="button" aria-pressed={tool === item} className="min-h-11 rounded-md border px-3" onClick={() => setTool(item)}>
+            {toolLabel[item]}
           </button>
         ))}
       </div>
@@ -382,6 +416,27 @@ export function PhotoEditor({
               <SizeControl label="Fine rotation" value={fineRotation(edit.image.rotation)} min={-20} max={20} onChange={(fine) => patch((current) => ({ ...current, image: { rotation: Math.round(current.image.rotation / 90) * 90 + fine } }))} />
             </div>
           ) : null}
+          {tool === "background" ? (
+            <BackgroundTool
+              enabled={edit.backgroundRemoval.enabled}
+              edit={edit.backgroundRemoval}
+              bitmap={bitmap}
+              onChange={(next) =>
+                patch((current) => ({
+                  ...current,
+                  backgroundRemoval: {
+                    enabled: next.enabled,
+                    modelId: next.modelId,
+                    modelVersion: next.modelVersion,
+                    threshold: next.threshold,
+                    feather: next.feather,
+                    replacementColor: next.replacementColor,
+                  },
+                }))
+              }
+              onPreviewReady={setBackgroundPreview}
+            />
+          ) : null}
           {tool === "canvas" ? (
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap gap-2" role="group" aria-label="Canvas background">
@@ -443,8 +498,8 @@ export function PhotoEditor({
           <p className="text-sm text-muted-foreground">A privacy bar is not complete anonymization. A recognizable face may still identify a person. The original clinical photograph is never replaced.</p>
         </div>
         <div className="hidden flex-col gap-2 lg:flex" role="group" aria-label="Editing tools">
-          {(["masks", "crop", "rotate", "canvas"] as const).map((item) => (
-            <button key={item} type="button" aria-pressed={tool === item} className="min-h-11 rounded-md border px-3 text-left capitalize" onClick={() => setTool(item)}>{item}</button>
+          {tools.map((item) => (
+            <button key={item} type="button" aria-pressed={tool === item} className="min-h-11 rounded-md border px-3 text-left" onClick={() => setTool(item)}>{toolLabel[item]}</button>
           ))}
         </div>
       </div>
@@ -462,6 +517,21 @@ export function PhotoEditor({
     }));
     setSelectedId(id);
   }
+}
+
+function exportSource(
+  bitmap: ImageBitmap,
+  edit: EditDocument,
+  preview: RenderBackgroundResult | null,
+): CanvasImageSource & { width: number; height: number } {
+  if (!edit.backgroundRemoval.enabled || !preview) return bitmap;
+  const canvas = document.createElement("canvas");
+  canvas.width = preview.width;
+  canvas.height = preview.height;
+  const context = canvas.getContext("2d");
+  if (!context) return bitmap;
+  context.putImageData(preview.imageData, 0, 0);
+  return canvas;
 }
 
 function fineRotation(rotation: number) {

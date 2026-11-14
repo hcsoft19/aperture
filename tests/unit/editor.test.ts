@@ -69,6 +69,19 @@ describe("photo edits", () => {
     expect(rotatePoint(1, 0, 0, 0, 90).y).toBeCloseTo(1);
   });
 
+  it("keeps an older edit readable and marks background removal as a presentation edit", () => {
+    const stored = emptyEdit();
+    const { backgroundRemoval: _removed, ...older } = stored;
+    const parsed = parseEdit(older);
+    expect(parsed?.backgroundRemoval.enabled).toBe(false);
+    const removed = parseEdit({
+      ...stored,
+      backgroundRemoval: { ...stored.backgroundRemoval, enabled: true, replacementColor: "#FFFFFF" },
+    });
+    expect(removed?.backgroundRemoval.replacementColor).toBe("#FFFFFF");
+    expect(removed ? presentationEdited(removed) : false).toBe(true);
+  });
+
   it("adds canvas padding without changing the source size stored on the edit", () => {
     const edit: EditDocument = {
       ...emptyEdit(),

@@ -130,7 +130,13 @@ export function layoutEdit(sourceWidth: number, sourceHeight: number, edit: Edit
     width: Math.round(width),
     height: Math.round(height),
     background: edit.canvas.background === "original" ? "#E6E6E6" : edit.canvas.background,
-    presentationEdited: !full || edit.image.rotation !== 0 || pad !== 0 || edit.canvas.background !== "original" || masks.length > 0,
+    presentationEdited:
+      !full ||
+      edit.image.rotation !== 0 ||
+      pad !== 0 ||
+      edit.canvas.background !== "original" ||
+      masks.length > 0 ||
+      edit.backgroundRemoval.enabled,
     image: {
       x: imageX + box.width / 2,
       y: imageY + box.height / 2,

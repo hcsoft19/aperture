@@ -78,6 +78,7 @@ export function ColorPicker({ value, onChange, disabled = false }: ColorPickerPr
           />
           <input
             type="text"
+            aria-label="Custom color value"
             value={value}
             onChange={(e) => {
               const val = e.target.value;
