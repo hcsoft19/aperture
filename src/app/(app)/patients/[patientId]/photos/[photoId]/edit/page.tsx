@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PhotoEditor } from "@/features/editor/photo-editor";
 import { getEditablePhoto } from "@/features/editor/queries";
+import { segmentationEnabled } from "@/features/photo-intelligence/segmentation/estimate";
 import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { safeNextPath } from "@/lib/auth/paths";
@@ -53,6 +54,8 @@ async function EditPhotoContent({
       backHref={query.from ? safeNextPath(query.from) : `/patients/${patientId}`}
       initialEdit={photo.edit}
       initialRevisionId={photo.revisionId}
+      face={photo.face}
+      segmentationAvailable={segmentationEnabled(process.env.NEXT_PUBLIC_SEGMENTATION)}
     />
   );
 }

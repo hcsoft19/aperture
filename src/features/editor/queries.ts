@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { parseEdit, type EditDocument } from "@/features/editor/schema";
+import type { FaceBox } from "@/features/photo-intelligence/framing/suggest";
 
 export type EditablePhoto = {
   id: string;
@@ -15,6 +16,7 @@ export type EditablePhoto = {
   revisionId: string | null;
   revisionNumber: number | null;
   edit: EditDocument | null;
+  face: FaceBox;
 };
 
 export async function getEditablePhoto(
@@ -50,6 +52,11 @@ export async function getEditablePhoto(
     .order("revision_number", { ascending: false })
     .limit(1)
     .maybeSingle();
+  const assessment = await supabase
+    .from("capture_quality_assessments")
+    .select("metrics")
+    .eq("photo_id", photoId)
+    .maybeSingle();
   const angle = Array.isArray(data.photography_angles) ? data.photography_angles[0] : data.photography_angles;
 
   return {
@@ -64,5 +71,26 @@ export async function getEditablePhoto(
     revisionId: revision.data?.id ?? null,
     revisionNumber: revision.data?.revision_number ?? null,
     edit: parseEdit(revision.data?.edit_data),
+    face: faceFromMetrics(assessment.data?.metrics),
   };
+}
+
+function faceFromMetrics(metrics: unknown): FaceBox {
+  if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
+    return null;
+  }
+  const record = metrics as Record<string, unknown>;
+  const centerX = record.faceCenterX;
+  const centerY = record.faceCenterY;
+  const width = record.faceWidth;
+  const height = record.faceHeight;
+  if (
+    typeof centerX !== "number" ||
+    typeof centerY !== "number" ||
+    typeof width !== "number" ||
+    typeof height !== "number"
+  ) {
+    return null;
+  }
+  return { centerX, centerY, width, height };
 }

@@ -1,0 +1,10 @@
+---
+description: Use Slack for Aperture project communication
+alwaysApply: true
+---
+
+# Slack communication
+
+Project communication for Aperture happens in Slack workspace `T06FNJRBDDE`, channel `C06FCEX3DC1`. Slack names that channel `software-development-software-management`. The user refers to it as `#aperture`.
+
+Subscribe this conversation to that channel and treat new messages there as requests for this project. Keep clinical and secret details out of Slack.

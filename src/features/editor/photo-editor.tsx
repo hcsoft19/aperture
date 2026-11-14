@@ -12,6 +12,11 @@ import {
 import { renderEditBlob } from "@/features/editor/export-image";
 import { commitHistory, createHistory, redoHistory, undoHistory, type History } from "@/features/editor/history";
 import { cropForAspect } from "@/features/editor/layout";
+import { recordSuggestionAction } from "@/features/photo-intelligence/actions";
+import { FramingSuggestion } from "@/features/photo-intelligence/framing/framing-suggestion";
+import { FRAMING_VERSION, suggestFraming, type FaceBox } from "@/features/photo-intelligence/framing/suggest";
+import { estimateBackground, SEGMENTATION_VERSION } from "@/features/photo-intelligence/segmentation/estimate";
+import { SegmentationOptIn } from "@/features/photo-intelligence/segmentation/segmentation-opt-in";
 import {
   canvasBackgrounds,
   emptyEdit,
@@ -36,6 +41,8 @@ export function PhotoEditor({
   backHref,
   initialEdit,
   initialRevisionId,
+  face,
+  segmentationAvailable,
 }: {
   photoId: string;
   angleName: string;
@@ -43,6 +50,8 @@ export function PhotoEditor({
   backHref: string;
   initialEdit: EditDocument | null;
   initialRevisionId: string | null;
+  face: FaceBox;
+  segmentationAvailable: boolean;
 }) {
   const router = useRouter();
   const imageRef = useRef<HTMLImageElement>(null);
@@ -55,6 +64,9 @@ export function PhotoEditor({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
   const [message, setMessage] = useState("");
+  const [segmentationOn, setSegmentationOn] = useState(false);
+  const [segmentationNote, setSegmentationNote] = useState("");
+  const framing = suggestFraming(face);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const edit = history.present;
@@ -328,10 +340,38 @@ export function PhotoEditor({
             </>
           ) : null}
           {tool === "crop" ? (
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Crop aspect ratio">
-              {frameAspects.map((aspect) => (
-                <button key={aspect} type="button" aria-pressed={edit.crop.aspect === aspect} className="min-h-11 rounded-md border px-3" onClick={() => bitmap && patch((current) => ({ ...current, crop: cropForAspect(bitmap.width, bitmap.height, current.image.rotation, aspect) }))}>{aspect}</button>
-              ))}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Crop aspect ratio">
+                {frameAspects.map((aspect) => (
+                  <button key={aspect} type="button" aria-pressed={edit.crop.aspect === aspect} className="min-h-11 rounded-md border px-3" onClick={() => bitmap && patch((current) => ({ ...current, crop: cropForAspect(bitmap.width, bitmap.height, current.image.rotation, aspect) }))}>{aspect}</button>
+                ))}
+              </div>
+              <FramingSuggestion
+                suggestion={framing}
+                onAccept={(crop) => {
+                  patch((current) => ({ ...current, crop }));
+                  void recordSuggestionAction({
+                    kind: "framing",
+                    status: "accepted",
+                    heuristicVersion: FRAMING_VERSION,
+                    modelId: null,
+                    confidence: framing.ok ? framing.confidence : null,
+                    photoId,
+                    payload: { x: crop.x, y: crop.y, width: crop.width, height: crop.height },
+                  });
+                }}
+                onReject={() => {
+                  void recordSuggestionAction({
+                    kind: "framing",
+                    status: "rejected",
+                    heuristicVersion: FRAMING_VERSION,
+                    modelId: null,
+                    confidence: null,
+                    photoId,
+                    payload: { kept: true },
+                  });
+                }}
+              />
             </div>
           ) : null}
           {tool === "rotate" ? (
@@ -354,6 +394,36 @@ export function PhotoEditor({
           ) : null}
           <SizeControl label="Zoom" value={edit.view.zoom} min={1} max={3} step={0.01} onChange={(zoom) => patch((current) => ({ ...current, view: { ...current.view, zoom } }))} />
           <button type="button" className="min-h-11 self-start rounded-md border px-3" onClick={() => patch((current) => ({ ...current, view: { zoom: 1, panX: 0, panY: 0 } }))}>Reset zoom</button>
+          {segmentationAvailable ? (
+            <div className="flex flex-col gap-2">
+              <SegmentationOptIn
+                enabled={segmentationOn}
+                onChange={(next) => {
+                  setSegmentationOn(next);
+                  if (!next || !bitmap) {
+                    setSegmentationNote("");
+                    return;
+                  }
+                  const estimate = coverageFor(bitmap);
+                  setSegmentationNote(
+                    estimate.ok
+                      ? "A presentation estimate is available. The original photograph stays unchanged."
+                      : "The background could not be separated. The original photograph stays unchanged.",
+                  );
+                  void recordSuggestionAction({
+                    kind: "segmentation",
+                    status: estimate.ok ? "accepted" : "rejected",
+                    heuristicVersion: SEGMENTATION_VERSION,
+                    modelId: null,
+                    confidence: estimate.ok ? estimate.coverage : null,
+                    photoId,
+                    payload: estimate.ok ? { coverage: Number(estimate.coverage.toFixed(3)) } : { reason: estimate.reason },
+                  });
+                }}
+              />
+              {segmentationNote ? <p className="text-base">{segmentationNote}</p> : null}
+            </div>
+          ) : null}
           <button
             type="button"
             className="min-h-11 self-start rounded-md border px-3"
@@ -397,6 +467,21 @@ export function PhotoEditor({
 function fineRotation(rotation: number) {
   const nearest = Math.round(rotation / 90) * 90;
   return Math.max(-20, Math.min(20, rotation - nearest));
+}
+
+function coverageFor(bitmap: ImageBitmap) {
+  const canvas = document.createElement("canvas");
+  const longest = Math.max(bitmap.width, bitmap.height, 1);
+  const scale = Math.min(1, 160 / longest);
+  canvas.width = Math.max(8, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(8, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) {
+    return { ok: false as const, reason: "poor_separation" as const };
+  }
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  return estimateBackground({ width: canvas.width, height: canvas.height, rgba: image.data });
 }
 
 function SizeControl({

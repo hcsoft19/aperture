@@ -46,3 +46,17 @@ Do not add a separate backend, Java, Nest, Express, React Native, Flutter, or a 
 - Prefer small server actions over new route handlers, except redirects such as the auth callback.
 - Read `cookies()` or `headers()` only inside a `<Suspense>` boundary while Cache Components are enabled.
 - Touch targets stay at least 44px. Body text stays at least 16px. Every control has a visible name.
+
+## Language models
+
+Any language-model feature uses OpenRouter. Try the free models first, in order: `openrouter/free`, then `meta-llama/llama-3.2-3b-instruct:free`, then `qwen/qwen-2.5-7b-instruct:free`. If those are down, try `OPENROUTER_FALLBACK_MODEL` when it is set. If every model fails, or `OPENROUTER_API_KEY` is missing, use the local heuristic and say so. Never send a photograph, a patient name, a clinic name, or an identifier. The key stays server-only and out of git.
+
+Computer vision stays on the device. Do not upload camera frames, landmarks, or embeddings to a model host.
+
+## Other assistants
+
+`CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` point at this file. Keep the product rules here so every assistant reads the same instructions.
+
+## Factory
+
+Parallel implementation lanes own separate directories. A lane does not edit another lane, a migration, or `src/types/database.ts`. The integrator writes the shared migration, runs the suite, and is the only one who commits. The lane list is `docs/agent-factory.md`.

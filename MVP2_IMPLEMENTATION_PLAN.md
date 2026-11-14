@@ -1,6 +1,6 @@
 # MVP 2 implementation plan
 
-Audit date: 14 November 2026. This plan is based on the repository as it exists on `production`. No editor code, dependency, migration, or deployment is included in this document. Implementation waits for approval.
+Audit date: 14 November 2026. The editor described below has since been implemented. This file remains the original audit. Current behavior is in `docs/specification.md`. MVP 5 adds suggestions on top of this editor and does not replace it.
 
 ## What already exists
 

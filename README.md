@@ -2,7 +2,7 @@
 
 Mobile-first web app for medical aesthetic clinics to document treatment photographs, compare them over time, and share selected progress with patients.
 
-This repository is through the MVP: clinic charts, guided facial photography, side-by-side comparisons, and a patient portal for released sessions and shared comparisons. A prototype is hosted for demonstration. It is not a clinical system.
+This repository includes clinic charts, guided facial photography, a non-destructive editor, clinic operations, and photography suggestions. A prototype is hosted for demonstration. It is not a clinical system. Coding rules for every assistant are in `AGENTS.md`.
 
 ## Requirements
 
@@ -78,7 +78,7 @@ The public app is [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](http
 
 The release source is `production`. The approved home page, authentication screens, and clinic workspace share white surfaces, blush panels, wine accents, and Figtree typography. A Git push can create a Preview deployment without updating the public host: publish the merged commit with Vercel target `production` and verify the primary URL after the deployment is `READY`. Never treat a successful push or a ready Preview as proof that the public site changed.
 
-The hosted Supabase project is `aperture`, ref `pnsrvrsgbkafkqqrdxcx`, API `https://pnsrvrsgbkafkqqrdxcx.supabase.co`. Its database has the five migrations and the synthetic seed, including the two demo accounts below. Do not add real patients to it. Vercel has only the public URL, the publishable key, and `NEXT_PUBLIC_SITE_URL`. The service-role key is not in Vercel and must not be added.
+The hosted Supabase project is `aperture`, ref `pnsrvrsgbkafkqqrdxcx`, API `https://pnsrvrsgbkafkqqrdxcx.supabase.co`. Its database has the migrations in `supabase/migrations` and the synthetic seed, including the two demo accounts below. Do not add real patients to it. Vercel has the public URL, the publishable key, and `NEXT_PUBLIC_SITE_URL`. `OPENROUTER_API_KEY` is optional and server-only. The service-role key is not in Vercel and must not be added.
 
 Auth site URL is the Vercel hostname above. Redirects include `/auth/callback` and `/auth/callback?next=/reset-password` for that host, the alternate Vercel host, and local development.
 
@@ -92,4 +92,4 @@ Do not upload real patient photographs or other health information to this proto
 
 ## Next step
 
-The remaining work is the automated browser suite, a fuller access-control test pass, and a privacy review before any real clinical use. Read `docs/specification.md` before continuing. Do not deploy a newer branch, or put real patient photographs on the hosted project, without confirmation.
+Photography suggestions are described in `MVP5_IMPLEMENTATION_PLAN.md`. The remaining work is the automated browser suite, a fuller access-control test pass, and a privacy review before any real clinical use. Read `docs/specification.md` and `AGENTS.md` before continuing. Do not deploy a newer branch, or put real patient photographs on the hosted project, without confirmation.

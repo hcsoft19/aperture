@@ -1,0 +1,10 @@
+---
+description: Use OpenRouter free models with a fallback for Aperture language features
+alwaysApply: true
+---
+
+# Language models
+
+Language-model features call OpenRouter. Try `openrouter/free`, then `meta-llama/llama-3.2-3b-instruct:free`, then `qwen/qwen-2.5-7b-instruct:free`. If those fail, try `OPENROUTER_FALLBACK_MODEL` when it is set. If the key is missing or every model fails, use the local heuristic.
+
+Do not send photographs, patient names, clinic names, or identifiers. Keep `OPENROUTER_API_KEY` server-only. Computer vision stays on the device.

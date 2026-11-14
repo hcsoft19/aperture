@@ -8,7 +8,7 @@ Framing uses the browser Face Detector when the browser provides it. Blur, expos
 
 Coordinates are fractions of the source frame, origin at the top left. The preview is not mirrored. Yaw is an approximate offset from the angle’s target, not a clinical measurement. Pitch and roll stay empty. Landmarks, embeddings, and image pixels are not stored.
 
-`NEXT_PUBLIC_SMART_CAPTURE=off` restores the previous capture screen. A clinic administrator can also turn guidance off for that clinic.
+`NEXT_PUBLIC_SMART_CAPTURE=off` restores the previous capture screen. A clinic administrator can also turn guidance off for that clinic. MVP 5 setup tips read these warning codes and do not replace this guidance.
 
 ## Data
 

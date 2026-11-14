@@ -3,8 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { CaptureSessionView } from "@/features/capture/queries";
+import type { CapturePhotoQuality, CaptureSessionView } from "@/features/capture/queries";
 import { saveComparisonAction } from "@/features/capture/comparison-actions";
+import { recordSuggestionAction } from "@/features/photo-intelligence/actions";
+import { AlignmentSuggestion } from "@/features/photo-intelligence/alignment/alignment-suggestion";
+import { ALIGNMENT_VERSION, suggestAlignment } from "@/features/photo-intelligence/alignment/suggest";
 
 export function ComparisonPreview({ session }: { session: CaptureSessionView }) {
   const router = useRouter();
@@ -99,6 +102,42 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
         Mark this comparison as aligned
       </label>
       <p className="text-sm font-medium" role="status">{alignment.aligned ? "Aligned" : "Not aligned"}</p>
+      <AlignmentSuggestion
+        suggestion={suggestAlignment({
+          sameAngle: true,
+          baseline: faceGeometry(session.references.find((photo) => photo.id === referenceId)?.quality),
+          followUp: faceGeometry(session.photos.find((photo) => photo.angleId === angleId)?.quality),
+        })}
+        onAccept={(values) => {
+          setAlignment({ ...alignment, ...values, aligned: true });
+          const followUp = session.photos.find((photo) => photo.angleId === angleId);
+          if (followUp) {
+            void recordSuggestionAction({
+              kind: "alignment",
+              status: "accepted",
+              heuristicVersion: ALIGNMENT_VERSION,
+              modelId: null,
+              confidence: null,
+              photoId: followUp.id,
+              payload: values,
+            });
+          }
+        }}
+        onReject={() => {
+          const followUp = session.photos.find((photo) => photo.angleId === angleId);
+          if (followUp) {
+            void recordSuggestionAction({
+              kind: "alignment",
+              status: "rejected",
+              heuristicVersion: ALIGNMENT_VERSION,
+              modelId: null,
+              confidence: null,
+              photoId: followUp.id,
+              payload: { kept: true },
+            });
+          }
+        }}
+      />
       <button type="button" disabled={saving} className="mt-4 min-h-11 rounded-md bg-primary px-5 font-medium text-primary-foreground disabled:opacity-50" onClick={async () => {
         const beforePhoto = session.references.find((photo) => photo.id === referenceId && photo.angleId === angleId);
         const afterPhoto = session.photos.find((photo) => photo.angleId === angleId);
@@ -117,4 +156,11 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
       <p role="status" className="mt-2 text-sm">{message}</p>
     </section>
   );
+}
+
+function faceGeometry(quality: CapturePhotoQuality | null | undefined) {
+  if (!quality || quality.faceCenterX === null || quality.faceCenterY === null || quality.faceWidth === null) {
+    return null;
+  }
+  return { centerX: quality.faceCenterX, centerY: quality.faceCenterY, width: quality.faceWidth, roll: null };
 }
