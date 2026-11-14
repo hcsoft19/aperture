@@ -159,8 +159,8 @@ export function ClinicGallery({
             Every journey, in view.
           </h1>
           <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-            Your clinic’s before-and-after library. Find a result, take a closer
-            look, and follow the full story.
+            Your clinic’s photographs and before-and-after comparisons. Find a
+            result, take a closer look, and follow the full story.
           </p>
         </div>
         <Link
@@ -182,7 +182,7 @@ export function ClinicGallery({
           <div>
             <p className="text-lg font-medium">The results collection</p>
             <p className="text-sm text-muted-foreground">
-              Clinical results & credited reference examples
+              Saved sessions, comparisons & credited references
             </p>
           </div>
         </div>
@@ -194,7 +194,7 @@ export function ClinicGallery({
       <section aria-labelledby="gallery-heading">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 id="gallery-heading" className="text-xl font-medium">
-            Before & after{" "}
+            Photographs & comparisons{" "}
             <span className="ml-2 rounded-full bg-muted px-2.5 py-1 text-sm text-muted-foreground">
               {page.total}
             </span>
@@ -546,7 +546,27 @@ function ResultCard({
       aria-label={`View result: ${result.treatmentName}, ${result.patientName}`}
       className="group block w-full overflow-hidden rounded-2xl border border-border bg-card text-left transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring"
     >
-      {result.isPlate ? (
+      {result.entryKind === "session" ? (
+        <div className="relative grid grid-cols-2 gap-px bg-border">
+          <div className="relative aspect-[3/4] bg-muted">
+            <PreviewPhoto
+              resultId={result.id}
+              side="before"
+              alt={result.angleName}
+            />
+            <span className="absolute bottom-3 left-3 rounded-md bg-card/95 px-2 py-1 text-sm">
+              Saved session
+            </span>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-3 bg-secondary/50 p-4 text-center">
+            <Camera aria-hidden="true" className="size-6 text-primary" />
+            <span className="text-base font-medium">Photographs saved</span>
+            <span className="text-sm leading-6 text-muted-foreground">
+              Open the case to review views and continue the follow-up.
+            </span>
+          </div>
+        </div>
+      ) : result.isPlate ? (
         <div className="relative aspect-[3/2] overflow-hidden bg-muted">
           <PreviewPhoto
             resultId={result.id}

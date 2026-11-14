@@ -37,6 +37,8 @@ export type CapturePhoto = {
 };
 
 export type CaptureSessionView = {
+  patientId?: string;
+  treatmentId?: string;
   id: string;
   status: "draft" | "completed" | "cancelled";
   sessionType: "baseline" | "follow_up";
@@ -59,12 +61,16 @@ export type CaptureSessionView = {
 
 const CONSENT_PURPOSE = "Clinical photography";
 
-export async function listCaptureTargets(organizationId: string): Promise<CaptureTarget[]> {
+export async function listCaptureTargets(
+  organizationId: string,
+): Promise<CaptureTarget[]> {
   const supabase = await createClient();
   const [patientsResult, baselinesResult] = await Promise.all([
     supabase
       .from("patients")
-      .select("id, first_name, last_name, treatments(id, name, body_area, protocol_code), consents(purpose, revoked_at)")
+      .select(
+        "id, first_name, last_name, treatments(id, name, body_area, protocol_code), consents(purpose, revoked_at)",
+      )
       .eq("organization_id", organizationId)
       .order("last_name"),
     supabase
@@ -79,11 +85,14 @@ export async function listCaptureTargets(organizationId: string): Promise<Captur
     throw new Error("Could not load treatments.");
   }
 
-  const baselines = new Set((baselinesResult.data ?? []).map((row) => row.treatment_id));
+  const baselines = new Set(
+    (baselinesResult.data ?? []).map((row) => row.treatment_id),
+  );
 
   return (patientsResult.data ?? []).flatMap((patient) => {
     const hasConsent = (patient.consents ?? []).some(
-      (consent) => consent.purpose === CONSENT_PURPOSE && consent.revoked_at === null,
+      (consent) =>
+        consent.purpose === CONSENT_PURPOSE && consent.revoked_at === null,
     );
     const patientName = `${patient.first_name} ${patient.last_name}`;
     return (patient.treatments ?? []).map((treatment) => ({
@@ -99,11 +108,15 @@ export async function listCaptureTargets(organizationId: string): Promise<Captur
   });
 }
 
-export async function getCaptureProtocol(code = "FACE_STANDARD"): Promise<CaptureProtocol | null> {
+export async function getCaptureProtocol(
+  code = "FACE_STANDARD",
+): Promise<CaptureProtocol | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("photography_protocols")
-    .select("id, code, version, name, photography_angles(id, code, name, sort_order, instructions)")
+    .select(
+      "id, code, version, name, photography_angles(id, code, name, sort_order, instructions)",
+    )
     .eq("code", code)
     .order("version", { ascending: false })
     .limit(1)
@@ -176,11 +189,15 @@ export async function getCaptureSession(
   return assemble(data, treatment, patient, protocol, supabase);
 }
 
-async function protocolById(protocolId: string): Promise<CaptureProtocol | null> {
+async function protocolById(
+  protocolId: string,
+): Promise<CaptureProtocol | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("photography_protocols")
-    .select("id, code, version, name, photography_angles(id, code, name, sort_order, instructions)")
+    .select(
+      "id, code, version, name, photography_angles(id, code, name, sort_order, instructions)",
+    )
     .eq("id", protocolId)
     .maybeSingle();
 
@@ -211,14 +228,21 @@ async function assemble(
     status: "draft" | "completed" | "cancelled";
     session_type: "baseline" | "follow_up";
     treatment_id: string;
-    photos: { id: string; angle_id: string; storage_path: string; upload_status: string }[];
+    photos: {
+      id: string;
+      angle_id: string;
+      storage_path: string;
+      upload_status: string;
+    }[];
   },
-  treatment: { name: string; body_area: string },
+  treatment: { name: string; body_area: string; patient_id: string },
   patient: { first_name: string; last_name: string },
   protocol: CaptureProtocol,
   supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<CaptureSessionView> {
-  const uploaded = data.photos.filter((photo) => photo.upload_status === "uploaded");
+  const uploaded = data.photos.filter(
+    (photo) => photo.upload_status === "uploaded",
+  );
   const references =
     data.session_type === "follow_up"
       ? await baselineReferences(supabase, data.treatment_id, data.id)
@@ -229,28 +253,42 @@ async function assemble(
   ]);
   const photoIds = uploaded.map((photo) => photo.id);
   const { data: saved } = photoIds.length
-    ? await supabase.from("comparisons").select("before_photo_id, after_photo_id, alignment").in("after_photo_id", photoIds).order("created_at", { ascending: false })
+    ? await supabase
+        .from("comparisons")
+        .select("before_photo_id, after_photo_id, alignment")
+        .in("after_photo_id", photoIds)
+        .order("created_at", { ascending: false })
     : { data: [] };
   const comparisons = (saved ?? []).flatMap((item) => {
     const value = item.alignment;
     if (!value || typeof value !== "object" || Array.isArray(value)) return [];
     const { x, y, rotation, scale, aligned } = value;
-    if (typeof x !== "number" || typeof y !== "number" || typeof rotation !== "number" || typeof scale !== "number") return [];
-    return [{
-      beforeId: item.before_photo_id,
-      afterId: item.after_photo_id,
-      x,
-      y,
-      rotation,
-      scale,
-      aligned: aligned === true,
-    }];
+    if (
+      typeof x !== "number" ||
+      typeof y !== "number" ||
+      typeof rotation !== "number" ||
+      typeof scale !== "number"
+    )
+      return [];
+    return [
+      {
+        beforeId: item.before_photo_id,
+        afterId: item.after_photo_id,
+        x,
+        y,
+        rotation,
+        scale,
+        aligned: aligned === true,
+      },
+    ];
   });
 
   return {
     id: data.id,
     status: data.status,
     sessionType: data.session_type,
+    patientId: treatment.patient_id,
+    treatmentId: data.treatment_id,
     patientName: `${patient.first_name} ${patient.last_name}`,
     treatmentName: treatment.name,
     bodyArea: treatment.body_area,
@@ -277,7 +315,9 @@ async function baselineReferences(
 ) {
   const { data, error } = await supabase
     .from("photos")
-    .select("id, angle_id, storage_path, captured_at, photo_sessions!inner(treatment_id, session_type, status)")
+    .select(
+      "id, angle_id, storage_path, captured_at, photo_sessions!inner(treatment_id, session_type, status)",
+    )
     .eq("upload_status", "uploaded")
     .eq("photo_sessions.treatment_id", treatmentId)
     .eq("photo_sessions.session_type", "baseline")
@@ -288,7 +328,9 @@ async function baselineReferences(
     throw new Error("Could not load the baseline photographs.");
   }
 
-  return (data ?? []).sort((left, right) => (right.captured_at ?? "").localeCompare(left.captured_at ?? ""));
+  return (data ?? []).sort((left, right) =>
+    (right.captured_at ?? "").localeCompare(left.captured_at ?? ""),
+  );
 }
 
 async function signedUrls(
@@ -300,7 +342,9 @@ async function signedUrls(
 
   await Promise.all(
     unique.map(async (path) => {
-      const { data } = await supabase.storage.from("clinical-photos").createSignedUrl(path, 180);
+      const { data } = await supabase.storage
+        .from("clinical-photos")
+        .createSignedUrl(path, 180);
       if (data?.signedUrl) {
         urls.set(path, data.signedUrl);
       }

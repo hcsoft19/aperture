@@ -73,7 +73,7 @@ export type SourceCredit = {
 export type GalleryResult = {
   id: string;
   createdAt: string;
-  entryKind: "clinical" | "demo";
+  entryKind: "clinical" | "demo" | "session";
   isPlate: boolean;
   sourceCredits: SourceCredit[];
   patientId: string | null;

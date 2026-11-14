@@ -4,8 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getWorkspace } from "@/features/access/workspace";
-import { CONSENT_PURPOSE, getCaptureProtocol } from "@/features/capture/queries";
-import { canCancelSession, canFinishSession, clinicalStoragePath } from "@/features/capture/rules";
+import {
+  CONSENT_PURPOSE,
+  getCaptureProtocol,
+} from "@/features/capture/queries";
+import {
+  canCancelSession,
+  canFinishSession,
+  clinicalStoragePath,
+} from "@/features/capture/rules";
 import {
   finishSessionSchema,
   preparePhotoSchema,
@@ -34,26 +41,34 @@ async function requireStaffClinic() {
   return workspace;
 }
 
-export async function startCaptureAction(values: StartCaptureValues): Promise<CaptureActionResult> {
+export async function startCaptureAction(
+  values: StartCaptureValues,
+): Promise<CaptureActionResult> {
   const parsed = startCaptureSchema.safeParse(values);
 
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Choose a treatment and try again.",
+      message:
+        parsed.error.issues[0]?.message ?? "Choose a treatment and try again.",
     };
   }
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "The camera is limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "The camera is limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
   const organizationId = workspace.activeMembership.organizationId;
   const { data: treatment, error: treatmentError } = await supabase
     .from("treatments")
-    .select("id, body_area, patient_id, protocol_code, patients!inner(id, organization_id)")
+    .select(
+      "id, body_area, patient_id, protocol_code, patients!inner(id, organization_id)",
+    )
     .eq("id", parsed.data.treatmentId)
     .eq("patients.organization_id", organizationId)
     .maybeSingle();
@@ -71,7 +86,10 @@ export async function startCaptureAction(values: StartCaptureValues): Promise<Ca
       .eq("status", "completed");
 
     if (error || !count) {
-      return { status: "error", message: "Finish a baseline session before a follow-up." };
+      return {
+        status: "error",
+        message: "Finish a baseline session before a follow-up.",
+      };
     }
   }
 
@@ -90,7 +108,10 @@ export async function startCaptureAction(values: StartCaptureValues): Promise<Ca
 
   if (!consents?.length) {
     if (!parsed.data.confirmConsent) {
-      return { status: "error", message: "Record photography consent before capturing." };
+      return {
+        status: "error",
+        message: "Record photography consent before capturing.",
+      };
     }
 
     const { error } = await supabase.from("consents").insert({
@@ -101,13 +122,19 @@ export async function startCaptureAction(values: StartCaptureValues): Promise<Ca
     });
 
     if (error) {
-      return { status: "error", message: "Photography consent could not be recorded." };
+      return {
+        status: "error",
+        message: "Photography consent could not be recorded.",
+      };
     }
   }
 
   const protocol = await getCaptureProtocol(treatment.protocol_code);
   if (!protocol || protocol.angles.length === 0) {
-    return { status: "error", message: "The photography protocol is not available." };
+    return {
+      status: "error",
+      message: "The photography protocol is not available.",
+    };
   }
 
   const { data: session, error: sessionError } = await supabase
@@ -133,13 +160,17 @@ export async function startCaptureAction(values: StartCaptureValues): Promise<Ca
 
 export async function preparePhotoAction(
   values: PreparePhotoValues,
-): Promise<CaptureActionResult | { status: "ready"; photoId: string; storagePath: string }> {
+): Promise<
+  | CaptureActionResult
+  | { status: "ready"; photoId: string; storagePath: string }
+> {
   const parsed = preparePhotoSchema.safeParse(values);
 
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "The photograph could not be saved.",
+      message:
+        parsed.error.issues[0]?.message ?? "The photograph could not be saved.",
     };
   }
 
@@ -152,24 +183,45 @@ export async function preparePhotoAction(
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "The camera is limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "The camera is limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
-  const context = await loadDraft(supabase, parsed.data.sessionId, workspace.activeMembership.organizationId);
+  const context = await loadDraft(
+    supabase,
+    parsed.data.sessionId,
+    workspace.activeMembership.organizationId,
+  );
 
   if (!context) {
-    return { status: "error", message: "This session is not open for photographs." };
+    return {
+      status: "error",
+      message: "This session is not open for photographs.",
+    };
   }
 
   if (!context.angleIds.has(parsed.data.angleId)) {
-    return { status: "error", message: "That angle is not part of this session." };
+    return {
+      status: "error",
+      message: "That angle is not part of this session.",
+    };
   }
 
   if (parsed.data.referencePhotoId) {
-    const referenceOk = await referenceMatches(supabase, parsed.data.referencePhotoId, parsed.data.angleId, context.treatmentId);
+    const referenceOk = await referenceMatches(
+      supabase,
+      parsed.data.referencePhotoId,
+      parsed.data.angleId,
+      context.treatmentId,
+    );
     if (!referenceOk || context.sessionType !== "follow_up") {
-      return { status: "error", message: "The reference photograph is not available." };
+      return {
+        status: "error",
+        message: "The reference photograph is not available.",
+      };
     }
   }
 
@@ -222,13 +274,23 @@ export async function finalizePhotoAction(input: {
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "The camera is limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "The camera is limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
-  const context = await loadDraft(supabase, input.sessionId, workspace.activeMembership.organizationId);
+  const context = await loadDraft(
+    supabase,
+    input.sessionId,
+    workspace.activeMembership.organizationId,
+  );
   if (!context) {
-    return { status: "error", message: "This session is not open for photographs." };
+    return {
+      status: "error",
+      message: "This session is not open for photographs.",
+    };
   }
 
   const { data: photo, error } = await supabase
@@ -246,7 +308,10 @@ export async function finalizePhotoAction(input: {
   const storedSize = storedSizeBytes(stored);
   if (!stored || storedSize !== photo.file_size_bytes) {
     await removePending(supabase, input.sessionId, undefined, input.photoId);
-    return { status: "error", message: "The photograph could not be confirmed." };
+    return {
+      status: "error",
+      message: "The photograph could not be confirmed.",
+    };
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -281,7 +346,11 @@ export async function discardPhotoAction(input: {
   }
 
   const supabase = await createClient();
-  const context = await loadDraft(supabase, input.sessionId, workspace.activeMembership.organizationId);
+  const context = await loadDraft(
+    supabase,
+    input.sessionId,
+    workspace.activeMembership.organizationId,
+  );
   if (!context) {
     return;
   }
@@ -295,16 +364,27 @@ export async function finishCaptureAction(input: {
 }): Promise<CaptureActionResult> {
   const parsed = finishSessionSchema.safeParse(input);
   if (!parsed.success) {
-    return { status: "error", message: parsed.error.issues[0]?.message ?? "The session could not be finished." };
+    return {
+      status: "error",
+      message:
+        parsed.error.issues[0]?.message ?? "The session could not be finished.",
+    };
   }
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "The camera is limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "The camera is limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
-  const context = await loadDraft(supabase, parsed.data.sessionId, workspace.activeMembership.organizationId);
+  const context = await loadDraft(
+    supabase,
+    parsed.data.sessionId,
+    workspace.activeMembership.organizationId,
+  );
   if (!context) {
     return { status: "error", message: "This session is not open." };
   }
@@ -324,7 +404,9 @@ export async function finishCaptureAction(input: {
     .update({
       status: "completed",
       missing_angles_reason:
-        context.uploadedCount < context.angleIds.size ? parsed.data.missingReason.trim() : null,
+        context.uploadedCount < context.angleIds.size
+          ? parsed.data.missingReason.trim()
+          : null,
     })
     .eq("id", parsed.data.sessionId)
     .eq("status", "draft")
@@ -336,6 +418,9 @@ export async function finishCaptureAction(input: {
 
   revalidatePath(`/capture/${parsed.data.sessionId}`);
   revalidatePath(`/patients/${context.patientId}`);
+  revalidatePath("/patients", "layout");
+  revalidatePath("/home");
+  revalidatePath("/clinic");
   redirect(`/capture/${parsed.data.sessionId}`);
 }
 
@@ -350,11 +435,18 @@ export async function cancelCaptureAction(input: {
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "The camera is limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "The camera is limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
-  const context = await loadDraft(supabase, parsed.data.sessionId, workspace.activeMembership.organizationId);
+  const context = await loadDraft(
+    supabase,
+    parsed.data.sessionId,
+    workspace.activeMembership.organizationId,
+  );
   if (!context) {
     return { status: "error", message: "This session is not open." };
   }
@@ -369,9 +461,16 @@ export async function cancelCaptureAction(input: {
 
   if (context.uploadedCount === 0) {
     await removePending(supabase, parsed.data.sessionId);
-    const { error } = await supabase.from("photo_sessions").delete().eq("id", parsed.data.sessionId).eq("status", "draft");
+    const { error } = await supabase
+      .from("photo_sessions")
+      .delete()
+      .eq("id", parsed.data.sessionId)
+      .eq("status", "draft");
     if (error) {
-      return { status: "error", message: "The session could not be cancelled." };
+      return {
+        status: "error",
+        message: "The session could not be cancelled.",
+      };
     }
     revalidatePath("/capture");
     redirect("/capture");
@@ -423,7 +522,9 @@ async function loadDraft(
     return null;
   }
 
-  const treatment = Array.isArray(data.treatments) ? data.treatments[0] : data.treatments;
+  const treatment = Array.isArray(data.treatments)
+    ? data.treatments[0]
+    : data.treatments;
   if (!treatment) {
     return null;
   }
@@ -443,7 +544,9 @@ async function loadDraft(
     bodyArea: treatment.body_area,
     sessionType: data.session_type,
     angleIds: new Set((angles ?? []).map((angle) => angle.id)),
-    uploadedCount: (data.photos ?? []).filter((photo) => photo.upload_status === "uploaded").length,
+    uploadedCount: (data.photos ?? []).filter(
+      (photo) => photo.upload_status === "uploaded",
+    ).length,
   };
 }
 
@@ -527,7 +630,9 @@ async function storedObject(
   return data?.find((entry) => entry.name === fileName) ?? null;
 }
 
-function storedSizeBytes(entry: { metadata?: Record<string, unknown> | null } | null) {
+function storedSizeBytes(
+  entry: { metadata?: Record<string, unknown> | null } | null,
+) {
   const size = entry?.metadata?.size;
   if (typeof size === "number" && Number.isFinite(size)) {
     return size;

@@ -218,3 +218,33 @@ function toTreatment(row: {
     status: row.status,
   };
 }
+
+export async function listTreatmentPhotographs(
+  organizationId: string,
+  treatmentId: string,
+) {
+  const db = await createClient();
+  const { data, error } = await db
+    .from("photos")
+    .select(
+      "id,session_id,photography_angles(name,sort_order),photo_sessions!inner(treatment_id,treatments!inner(patients!inner(organization_id)))",
+    )
+    .eq("upload_status", "uploaded")
+    .eq("photo_sessions.treatment_id", treatmentId)
+    .eq("photo_sessions.treatments.patients.organization_id", organizationId)
+    .order("captured_at");
+  if (error) throw new Error("Could not load saved photographs.");
+  return (data ?? [])
+    .map((photo) => {
+      const angle = Array.isArray(photo.photography_angles)
+        ? photo.photography_angles[0]
+        : photo.photography_angles;
+      return {
+        id: photo.id,
+        sessionId: photo.session_id,
+        angleName: angle?.name ?? "Saved photograph",
+        sortOrder: angle?.sort_order ?? 0,
+      };
+    })
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}

@@ -12,12 +12,21 @@ type CaptureSetupProps = {
   initialTreatmentId?: string;
 };
 
-export function CaptureSetup({ targets, initialTreatmentId }: CaptureSetupProps) {
-  const initial = targets.some((target) => target.treatmentId === initialTreatmentId)
+export function CaptureSetup({
+  targets,
+  initialTreatmentId,
+}: CaptureSetupProps) {
+  const initial = targets.some(
+    (target) => target.treatmentId === initialTreatmentId,
+  )
     ? initialTreatmentId
     : (targets[0]?.treatmentId ?? "");
   const [treatmentId, setTreatmentId] = useState(initial ?? "");
-  const [sessionType, setSessionType] = useState<"baseline" | "follow_up">("baseline");
+  const [sessionType, setSessionType] = useState<"baseline" | "follow_up">(
+    targets.find((target) => target.treatmentId === initial)?.hasBaseline
+      ? "follow_up"
+      : "baseline",
+  );
   const [confirmConsent, setConfirmConsent] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -64,7 +73,13 @@ export function CaptureSetup({ targets, initialTreatmentId }: CaptureSetupProps)
           value={treatmentId}
           onChange={(event) => {
             setTreatmentId(event.target.value);
-            setSessionType("baseline");
+            setSessionType(
+              targets.find(
+                (target) => target.treatmentId === event.target.value,
+              )?.hasBaseline
+                ? "follow_up"
+                : "baseline",
+            );
             setConfirmConsent(false);
           }}
         >
@@ -75,7 +90,12 @@ export function CaptureSetup({ targets, initialTreatmentId }: CaptureSetupProps)
           ))}
         </select>
       </div>
-      <p className="text-base text-muted-foreground">Selected protocol: {(selected?.protocolCode ?? "FACE_STANDARD").replaceAll("_", " ").toLowerCase()}</p>
+      <p className="text-base text-muted-foreground">
+        Selected protocol:{" "}
+        {(selected?.protocolCode ?? "FACE_STANDARD")
+          .replaceAll("_", " ")
+          .toLowerCase()}
+      </p>
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-medium">Session</legend>
         <label className="flex min-h-11 items-center gap-3 text-base">
@@ -111,7 +131,9 @@ export function CaptureSetup({ targets, initialTreatmentId }: CaptureSetupProps)
             checked={confirmConsent}
             onChange={(event) => setConfirmConsent(event.target.checked)}
           />
-          <span>The patient agrees to clinical photographs for this treatment.</span>
+          <span>
+            The patient agrees to clinical photographs for this treatment.
+          </span>
         </label>
       ) : null}
       <Button type="submit" size="lg" disabled={pending}>

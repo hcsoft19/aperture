@@ -15,7 +15,7 @@ export function ResultView({ result }: { result: GalleryResult }) {
   return (
     <div className="grid gap-7 lg:grid-cols-[1.5fr_1fr]">
       <div>
-        {!result.isPlate && (
+        {!result.isPlate && result.entryKind !== "session" && (
           <div
             className="mb-4 flex flex-wrap gap-2"
             role="group"
@@ -47,7 +47,23 @@ export function ResultView({ result }: { result: GalleryResult }) {
             </button>
           </div>
         )}
-        {result.isPlate && result.before.url ? (
+        {result.entryKind === "session" && result.before.url ? (
+          <figure>
+            <Image
+              src={result.before.url}
+              alt={result.angleName}
+              width={result.before.width ?? 800}
+              height={result.before.height ?? 1000}
+              unoptimized
+              className="h-auto max-h-[70vh] w-full rounded-xl bg-muted object-contain"
+            />
+            <figcaption className="mt-4 text-base leading-7 text-muted-foreground">
+              {result.angleName} · {galleryDate(result.before.date)}. Your
+              session photographs are saved. Open the treatment to view all
+              photographs and continue the follow-up.
+            </figcaption>
+          </figure>
+        ) : result.isPlate && result.before.url ? (
           <figure>
             <Image
               src={result.before.url}
@@ -239,7 +255,7 @@ export function ResultView({ result }: { result: GalleryResult }) {
           </div>
         ) : null}
         <div className="mt-auto flex flex-col gap-2 border-t border-border pt-4">
-          {result.entryKind === "clinical" && (
+          {result.entryKind !== "demo" && (
             <>
               <Link
                 href={treatmentUrl}
@@ -248,10 +264,10 @@ export function ResultView({ result }: { result: GalleryResult }) {
                 Open treatment <ArrowUpRight aria-hidden="true" />
               </Link>
               <Link
-                href={`/capture/${result.after.sessionId}`}
+                href={`/capture/${result.after.sessionId ?? result.before.sessionId}`}
                 className={buttonVariants({ variant: "outline", size: "lg" })}
               >
-                Review session & alignment
+                Review session photographs
               </Link>
             </>
           )}
