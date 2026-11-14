@@ -25,6 +25,70 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"capture_quality_assessments": {
+                  Row: {
+                    "created_at": string,"created_by": string,"detector": string,"detector_version": string,"id": string,"instruction": string,"metrics": NonNullable<Json>,"photo_id": string,"schema_version": number,"session_id": string,"status": string,"warnings": (string)[]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"detector": string,"detector_version": string,"id"?: string,"instruction": string,"metrics": NonNullable<Json>,"photo_id": string,"schema_version": number,"session_id": string,"status": string,"warnings"?: (string)[]
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"detector"?: string,"detector_version"?: string,"id"?: string,"instruction"?: string,"metrics"?: NonNullable<Json>,"photo_id"?: string,"schema_version"?: number,"session_id"?: string,"status"?: string,"warnings"?: (string)[]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "capture_quality_assessments_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "capture_quality_assessments_photo_id_fkey"
+      columns: ["photo_id"]
+isOneToOne: false
+      referencedRelation: "photos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "capture_quality_assessments_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "photo_sessions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"capture_quality_overrides": {
+                  Row: {
+                    "assessment_id": string,"created_at": string,"created_by": string,"id": string,"photo_id": string,"reason": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assessment_id": string,"created_at"?: string,"created_by": string,"id"?: string,"photo_id": string,"reason": string
+                  }
+                  Update: {
+                    "assessment_id"?: string,"created_at"?: string,"created_by"?: string,"id"?: string,"photo_id"?: string,"reason"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "capture_quality_overrides_assessment_id_fkey"
+      columns: ["assessment_id"]
+isOneToOne: false
+      referencedRelation: "capture_quality_assessments"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "capture_quality_overrides_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "capture_quality_overrides_photo_id_fkey"
+      columns: ["photo_id"]
+isOneToOne: false
+      referencedRelation: "photos"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"clinic_profiles": {
                   Row: {
                     "address": string,"allow_indexing": boolean,"booking_label": string,"booking_url": string,"city": string,"contact_name": string,"country": string,"cover_path": string | null,"display_name": string,"email": string,"introduction": string,"languages": string,"logo_path": string | null,"opening_hours": string,"organization_id": string,"phone": string,"postal_code": string,"published": boolean,"region": string,"slug": string,"social_links": NonNullable<Json>,"specialties": string,"updated_at": string,"website": string,"whatsapp": string
@@ -216,6 +280,32 @@ isOneToOne: false
       columns: ["organization_id"]
 isOneToOne: false
       referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"organization_capture_settings": {
+                  Row: {
+                    "guidance_enabled": boolean,"organization_id": string,"schema_version": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "guidance_enabled"?: boolean,"organization_id": string,"schema_version"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "guidance_enabled"?: boolean,"organization_id"?: string,"schema_version"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "organization_capture_settings_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: true
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "organization_capture_settings_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     }
                   ]

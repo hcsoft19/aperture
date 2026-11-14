@@ -13,7 +13,11 @@ import {
   finishCaptureAction,
   preparePhotoAction,
 } from "@/features/capture/actions";
+import { assessSource } from "@/features/capture/guidance/sample";
+import type { CaptureAssessment } from "@/features/capture/guidance/schema";
+import { useLiveGuidance } from "@/features/capture/guidance/use-live-guidance";
 import { describePhotograph, frameFromVideo, isCaptureMime } from "@/features/capture/media";
+import { recordCaptureQualityAction, saveCaptureSettingsAction } from "@/features/capture/quality-actions";
 import type { CaptureSessionView } from "@/features/capture/queries";
 import { createClient } from "@/lib/supabase/client";
 
@@ -25,9 +29,10 @@ const CHECKS = [
 
 type CaptureWizardProps = {
   session: CaptureSessionView;
+  guidanceEnabled?: boolean;
 };
 
-export function CaptureWizard({ session }: CaptureWizardProps) {
+export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizardProps) {
   const router = useRouter();
   const [savedExtra, setSavedExtra] = useState<string[]>([]);
   const saved = new Set([...session.photos.map((photo) => photo.angleId), ...savedExtra]);
@@ -42,6 +47,9 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [saving, setSaving] = useState(false);
   const [reason, setReason] = useState("");
+  const [reviewAssessment, setReviewAssessment] = useState<CaptureAssessment | null>(null);
+  const [overrideReason, setOverrideReason] = useState("");
+  const [guidanceOn, setGuidanceOn] = useState(session.guidanceEnabled);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const angle = session.protocol.angles[angleIndex];
@@ -49,6 +57,16 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
   const alreadySaved = angle ? saved.has(angle.id) : false;
   const locked = session.status !== "draft";
   const uploadedCount = session.photos.length;
+  const guidanceActive = guidanceEnabled && guidanceOn;
+  const baseline = reference?.quality?.faceCenterX != null && reference.quality.faceCenterY != null && reference.quality.faceWidth != null
+    ? { centerX: reference.quality.faceCenterX, centerY: reference.quality.faceCenterY, width: reference.quality.faceWidth }
+    : null;
+  const liveAssessment = useLiveGuidance({
+    videoRef,
+    enabled: guidanceActive && !locked && !pendingFile && !alreadySaved,
+    angleCode: angle?.code ?? "front",
+    baseline,
+  });
 
   useEffect(() => {
     if (locked || pendingFile) {
@@ -104,7 +122,33 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
     setPreviewUrl(null);
     setPendingFile(null);
     setChecks({});
+    setReviewAssessment(null);
+    setOverrideReason("");
     setMessage(null);
+  }
+
+  async function rememberAssessment(file: Blob) {
+    if (!guidanceActive) {
+      setReviewAssessment(null);
+      return;
+    }
+    try {
+      const bitmap = await createImageBitmap(file);
+      const width = 160;
+      const height = Math.max(2, Math.round((bitmap.height / Math.max(bitmap.width, 1)) * width));
+      const result = await assessSource({
+        source: bitmap,
+        width,
+        height,
+        angleCode: angle?.code ?? "front",
+        previous: null,
+        baseline,
+      });
+      bitmap.close();
+      setReviewAssessment(result.assessment);
+    } catch {
+      setReviewAssessment(null);
+    }
   }
 
   async function captureFrame() {
@@ -127,6 +171,7 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
     setPreviewUrl(URL.createObjectURL(blob));
     setChecks({});
     setMessage(null);
+    await rememberAssessment(blob);
   }
 
   async function chooseSavedPhotograph(file: File | undefined) {
@@ -142,6 +187,7 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
     setPreviewUrl(URL.createObjectURL(file));
     setChecks({});
     setMessage(null);
+    await rememberAssessment(file);
   }
 
   async function acceptPhotograph() {
@@ -197,9 +243,24 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
         setMessage(finalized.message);
         return;
       }
+      let note: string | null = null;
+      if (guidanceActive && reviewAssessment) {
+        const noted = await recordCaptureQualityAction({
+          sessionId: session.id,
+          photoId: prepared.photoId,
+          assessment: reviewAssessment,
+          overrideReason: reviewAssessment.status === "poor" ? overrideReason : null,
+        });
+        if (noted.status === "error") {
+          note = noted.message;
+        }
+      }
 
       setSavedExtra((current) => [...current, angle.id]);
       resetReview();
+      if (note) {
+        setMessage(note);
+      }
       router.refresh();
     } catch {
       setMessage("The photograph could not be saved. Try again or choose another photograph.");
@@ -277,12 +338,33 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
           {cameraMessage}
         </p>
       ) : null}
+      {guidanceActive && !pendingFile && !savedPhoto && liveAssessment ? (
+        <p className="text-base" role="status">
+          {liveAssessment.instruction}
+        </p>
+      ) : null}
       {locked || alreadySaved ? (
         <p className="text-base text-muted-foreground">
           {alreadySaved ? "This angle is saved." : "This session is closed."}
         </p>
       ) : pendingFile ? (
         <div className="flex flex-col gap-3">
+          {reviewAssessment ? (
+            <p className="text-base" role="status">
+              {reviewAssessment.instruction}
+            </p>
+          ) : null}
+          {reviewAssessment?.status === "poor" ? (
+            <label className="flex flex-col gap-2 text-base font-medium" htmlFor="override-reason">
+              Reason for using this photograph
+              <Textarea
+                id="override-reason"
+                value={overrideReason}
+                onChange={(event) => setOverrideReason(event.target.value)}
+                placeholder="Required when guidance asks for a retake."
+              />
+            </label>
+          ) : null}
           {CHECKS.map((item) => (
             <label key={item.id} className="flex min-h-11 items-center gap-3 text-base">
               <input
@@ -297,7 +379,7 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
             <Button type="button" size="lg" variant="outline" onClick={resetReview} disabled={saving}>
               Retake
             </Button>
-            <Button type="button" size="lg" onClick={() => void acceptPhotograph()} disabled={saving || !checksComplete}>
+            <Button type="button" size="lg" onClick={() => void acceptPhotograph()} disabled={saving || !checksComplete || (reviewAssessment?.status === "poor" && overrideReason.trim().length < 3)}>
               {saving ? "Saving…" : "Use this photograph"}
             </Button>
           </div>
@@ -361,6 +443,21 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">{uploadedCount} of {session.protocol.angles.length} angles saved.</p>
+          {guidanceActive ? <SavedGuidance session={session} /> : null}
+          {guidanceEnabled && session.canManageGuidance ? (
+            <label className="flex min-h-11 items-center gap-3 text-base">
+              <input
+                type="checkbox"
+                checked={guidanceOn}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  setGuidanceOn(next);
+                  void saveCaptureSettingsAction({ guidanceEnabled: next });
+                }}
+              />
+              Smart guidance for this clinic
+            </label>
+          ) : null}
         </form>
       ) : (
         <p className="text-base text-muted-foreground">
@@ -368,5 +465,27 @@ export function CaptureWizard({ session }: CaptureWizardProps) {
         </p>
       )}
     </div>
+  );
+}
+
+function SavedGuidance({ session }: { session: CaptureSessionView }) {
+  const noted = session.photos.filter((photo) => photo.quality);
+  if (noted.length === 0) {
+    return null;
+  }
+  return (
+    <section className="flex flex-col gap-2" aria-label="Capture guidance">
+      <h2 className="text-base font-medium">Guidance for saved photographs</h2>
+      <ul className="flex flex-col gap-2">
+        {noted.map((photo) => {
+          const angle = session.protocol.angles.find((item) => item.id === photo.angleId);
+          return (
+            <li key={photo.id} className="text-base">
+              {angle?.name ?? "Photograph"}: {photo.quality?.instruction}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { SessionPhotographs } from "@/features/capture/session-photographs";
 import { buttonVariants } from "@/components/ui/button";
 import { CaptureWizard } from "@/features/capture/capture-wizard";
+import { smartCaptureEnabled } from "@/features/capture/guidance/schema";
 import { ComparisonPreview } from "@/features/capture/comparison-preview";
 import { getCaptureSession } from "@/features/capture/queries";
 import { ChartMessage } from "@/features/patients/chart-message";
@@ -106,7 +107,10 @@ async function CaptureSessionContent({ params }: CaptureSessionPageProps) {
           ) : null}
         </>
       ) : (
-        <CaptureWizard session={session} />
+        <CaptureWizard
+          session={session}
+          guidanceEnabled={smartCaptureEnabled(process.env.NEXT_PUBLIC_SMART_CAPTURE) && session.guidanceEnabled}
+        />
       )}
       {session.status === "completed" && session.sessionType === "follow_up" ? (
         <ComparisonPreview session={session} />
