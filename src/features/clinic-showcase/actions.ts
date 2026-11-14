@@ -60,7 +60,7 @@ export async function saveClinicProfile(input: unknown): Promise<ActionResult> {
       ...fields,
       organization_id: access.org,
       social_links: socials,
-      booking_label,
+      booking_label: booking_label || "Book a consultation",
       booking_url:
         booking_mode === "none"
           ? ""
