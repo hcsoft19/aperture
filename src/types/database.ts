@@ -55,6 +55,239 @@ export type Database = {
           },
         ];
       };
+      clinic_profiles: {
+        Row: {
+          address: string;
+          allow_indexing: boolean;
+          booking_label: string;
+          booking_url: string;
+          city: string;
+          contact_name: string;
+          country: string;
+          cover_path: string | null;
+          display_name: string;
+          email: string;
+          introduction: string;
+          languages: string;
+          logo_path: string | null;
+          opening_hours: string;
+          organization_id: string;
+          phone: string;
+          postal_code: string;
+          published: boolean;
+          region: string;
+          slug: string;
+          social_links: Json;
+          specialties: string;
+          updated_at: string;
+          website: string;
+          whatsapp: string;
+        };
+        Insert: {
+          address?: string;
+          allow_indexing?: boolean;
+          booking_label?: string;
+          booking_url?: string;
+          city?: string;
+          contact_name?: string;
+          country?: string;
+          cover_path?: string | null;
+          display_name: string;
+          email?: string;
+          introduction?: string;
+          languages?: string;
+          logo_path?: string | null;
+          opening_hours?: string;
+          organization_id: string;
+          phone?: string;
+          postal_code?: string;
+          published?: boolean;
+          region?: string;
+          slug: string;
+          social_links?: Json;
+          specialties?: string;
+          updated_at?: string;
+          website?: string;
+          whatsapp?: string;
+        };
+        Update: {
+          address?: string;
+          allow_indexing?: boolean;
+          booking_label?: string;
+          booking_url?: string;
+          city?: string;
+          contact_name?: string;
+          country?: string;
+          cover_path?: string | null;
+          display_name?: string;
+          email?: string;
+          introduction?: string;
+          languages?: string;
+          logo_path?: string | null;
+          opening_hours?: string;
+          organization_id?: string;
+          phone?: string;
+          postal_code?: string;
+          published?: boolean;
+          region?: string;
+          slug?: string;
+          social_links?: Json;
+          specialties?: string;
+          updated_at?: string;
+          website?: string;
+          whatsapp?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clinic_profiles_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: true;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      clinic_publication_permissions: {
+        Row: {
+          comparison_id: string;
+          confirmed_at: string;
+          confirmed_by: string;
+          consent_reference: string;
+          organization_id: string;
+          result_id: string;
+          revoked_at: string | null;
+        };
+        Insert: {
+          comparison_id: string;
+          confirmed_at?: string;
+          confirmed_by: string;
+          consent_reference: string;
+          organization_id: string;
+          result_id: string;
+          revoked_at?: string | null;
+        };
+        Update: {
+          comparison_id?: string;
+          confirmed_at?: string;
+          confirmed_by?: string;
+          consent_reference?: string;
+          organization_id?: string;
+          result_id?: string;
+          revoked_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clinic_publication_permissions_comparison_id_fkey";
+            columns: ["comparison_id"];
+            isOneToOne: false;
+            referencedRelation: "comparisons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clinic_publication_permissions_confirmed_by_fkey";
+            columns: ["confirmed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clinic_publication_permissions_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clinic_publication_permissions_result_id_fkey";
+            columns: ["result_id"];
+            isOneToOne: true;
+            referencedRelation: "clinic_showcase_results";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      clinic_showcase_results: {
+        Row: {
+          after_path: string;
+          before_path: string;
+          body_area: string;
+          category: string;
+          created_at: string;
+          id: string;
+          organization_id: string;
+          procedure_type: string;
+          published: boolean;
+          slug: string;
+          summary: string;
+          title: string;
+          treatment_interval: string;
+          updated_at: string;
+        };
+        Insert: {
+          after_path: string;
+          before_path: string;
+          body_area?: string;
+          category: string;
+          created_at?: string;
+          id: string;
+          organization_id: string;
+          procedure_type?: string;
+          published?: boolean;
+          slug: string;
+          summary: string;
+          title: string;
+          treatment_interval?: string;
+          updated_at?: string;
+        };
+        Update: {
+          after_path?: string;
+          before_path?: string;
+          body_area?: string;
+          category?: string;
+          created_at?: string;
+          id?: string;
+          organization_id?: string;
+          procedure_type?: string;
+          published?: boolean;
+          slug?: string;
+          summary?: string;
+          title?: string;
+          treatment_interval?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clinic_showcase_results_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "clinic_profiles";
+            referencedColumns: ["organization_id"];
+          },
+        ];
+      };
+      clinic_slug_reservations: {
+        Row: {
+          organization_id: string;
+          slug: string;
+        };
+        Insert: {
+          organization_id: string;
+          slug: string;
+        };
+        Update: {
+          organization_id?: string;
+          slug?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clinic_slug_reservations_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "clinic_profiles";
+            referencedColumns: ["organization_id"];
+          },
+        ];
+      };
       comparisons: {
         Row: {
           after_photo_id: string;
@@ -836,6 +1069,7 @@ export type Database = {
       };
       clinic_gallery_facets: { Args: { target_org: string }; Returns: Json };
       create_organization: { Args: { org_name: string }; Returns: string };
+      prepare_clinic_publication: { Args: { payload: Json }; Returns: string };
       remove_organization_member: {
         Args: { target_org: string; target_profile: string };
         Returns: undefined;

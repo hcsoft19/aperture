@@ -15,7 +15,13 @@ export function BottomNav({ kind }: { kind: WorkspaceKind }) {
   const pathname = usePathname();
   const items = navigationFor(kind);
   const columns =
-    items.length === 2 ? "grid-cols-2" : items.length === 3 ? "grid-cols-3" : "grid-cols-4";
+    items.length === 5
+      ? "grid-cols-5"
+      : items.length === 2
+        ? "grid-cols-2"
+        : items.length === 3
+          ? "grid-cols-3"
+          : "grid-cols-4";
 
   return (
     <nav

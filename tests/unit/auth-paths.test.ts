@@ -9,10 +9,17 @@ describe("route access", () => {
     expect(isPublicPath("/register")).toBe(true);
     expect(isPublicPath("/forgot-password")).toBe(true);
     expect(isPublicPath("/auth/callback")).toBe(true);
+    expect(isPublicPath("/clinics/example-clinic")).toBe(true);
+    expect(isPublicPath("/robots.txt")).toBe(true);
+    expect(isPublicPath("/sitemap.xml")).toBe(true);
   });
 
   it("protects the workspace and password update screen", () => {
     expect(isPublicPath("/home")).toBe(false);
+    expect(isPublicPath("/clinic")).toBe(false);
+    expect(isPublicPath("/clinic/preview")).toBe(false);
+    expect(isPublicPath("/api/clinic/branding")).toBe(false);
+    expect(isPublicPath("/api/clinic/showcase/private-id")).toBe(false);
     expect(isPublicPath("/patients")).toBe(false);
     expect(isPublicPath("/capture")).toBe(false);
     expect(isPublicPath("/profile")).toBe(false);
