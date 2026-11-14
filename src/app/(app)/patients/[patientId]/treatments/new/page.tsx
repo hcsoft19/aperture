@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { getAllCatalogOptions } from "@/features/catalog";
 import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { getPatient } from "@/features/patients/queries";
@@ -46,7 +47,10 @@ async function NewTreatmentContent({ params }: NewTreatmentPageProps) {
     return <ChartMessage title="New treatment" message="This chart is not available." />;
   }
 
-  const patient = await getPatient(access.organizationId, patientId);
+  const [patient, catalogOptions] = await Promise.all([
+    getPatient(access.organizationId, patientId),
+    getAllCatalogOptions(),
+  ]);
 
   if (!patient) {
     return <ChartMessage title="New treatment" message="This chart is not available." />;
@@ -63,6 +67,7 @@ async function NewTreatmentContent({ params }: NewTreatmentPageProps) {
       <TreatmentForm
         patientId={patient.id}
         defaultValues={emptyTreatment}
+        catalogOptions={catalogOptions}
         submitLabel="Save treatment"
         pendingLabel="Saving…"
       />

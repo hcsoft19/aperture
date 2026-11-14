@@ -9,6 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  CatalogCombobox,
+  type CatalogOption,
+  type CatalogOptionType,
+} from "@/features/catalog";
+import {
   createTreatmentAction,
   updateTreatmentAction,
 } from "@/features/patients/actions";
@@ -18,10 +23,13 @@ import {
   type TreatmentValues,
 } from "@/features/patients/schemas";
 
+type CatalogOptions = Record<CatalogOptionType, CatalogOption[]>;
+
 type TreatmentFormProps = {
   patientId: string;
   treatmentId?: string;
   defaultValues: TreatmentValues;
+  catalogOptions: CatalogOptions;
   submitLabel: string;
   pendingLabel: string;
 };
@@ -30,6 +38,7 @@ export function TreatmentForm({
   patientId,
   treatmentId,
   defaultValues,
+  catalogOptions,
   submitLabel,
   pendingLabel,
 }: TreatmentFormProps) {
@@ -61,29 +70,43 @@ export function TreatmentForm({
           {message}
         </p>
       ) : null}
-      <TextField
-        id="treatment-name"
+      <CatalogCombobox
+        type="treatment_name"
         label="Treatment"
+        options={catalogOptions.treatment_name}
+        value={form.watch("name")}
+        onChange={(value) => form.setValue("name", value, { shouldValidate: true })}
         error={errors.name?.message}
-        registration={form.register("name")}
+        required
+        placeholder="Select or type treatment name..."
       />
-      <TextField
-        id="treatment-category"
+      <CatalogCombobox
+        type="category"
         label="Category"
+        options={catalogOptions.category}
+        value={form.watch("category")}
+        onChange={(value) => form.setValue("category", value, { shouldValidate: true })}
         error={errors.category?.message}
-        registration={form.register("category")}
+        required
+        placeholder="Select or type category..."
       />
-      <TextField
-        id="treatment-procedure"
+      <CatalogCombobox
+        type="procedure_type"
         label="Procedure / type"
+        options={catalogOptions.procedure_type}
+        value={form.watch("procedureType") ?? ""}
+        onChange={(value) => form.setValue("procedureType", value, { shouldValidate: true })}
         error={errors.procedureType?.message}
-        registration={form.register("procedureType")}
+        placeholder="Select or type procedure..."
       />
-      <TextField
-        id="treatment-product"
+      <CatalogCombobox
+        type="product"
         label="Product / drug (optional)"
+        options={catalogOptions.product}
+        value={form.watch("productName") ?? ""}
+        onChange={(value) => form.setValue("productName", value, { shouldValidate: true })}
         error={errors.productName?.message}
-        registration={form.register("productName")}
+        placeholder="Select or type product..."
       />
       <div className="flex flex-col gap-2">
         <Label htmlFor="treatment-protocol">Photography protocol</Label>
@@ -101,11 +124,15 @@ export function TreatmentForm({
           unchanged.
         </p>
       </div>
-      <TextField
-        id="treatment-body-area"
+      <CatalogCombobox
+        type="body_area"
         label="Body area"
+        options={catalogOptions.body_area}
+        value={form.watch("bodyArea")}
+        onChange={(value) => form.setValue("bodyArea", value, { shouldValidate: true })}
         error={errors.bodyArea?.message}
-        registration={form.register("bodyArea")}
+        required
+        placeholder="Select or type body area..."
       />
       <div className="flex flex-col gap-2">
         <Label htmlFor="treatment-status">Status</Label>

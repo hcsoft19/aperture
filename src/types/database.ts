@@ -89,6 +89,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"clinic_catalog_options": {
+                  Row: {
+                    "created_at": string,"created_by": string,"display_name": string,"id": string,"is_active": boolean,"normalized_key": string,"option_type": Database["public"]['Enums']["catalog_option_type"],"organization_id": string,"sort_order": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"display_name": string,"id"?: string,"is_active"?: boolean,"normalized_key": string,"option_type": Database["public"]['Enums']["catalog_option_type"],"organization_id": string,"sort_order"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"display_name"?: string,"id"?: string,"is_active"?: boolean,"normalized_key"?: string,"option_type"?: Database["public"]['Enums']["catalog_option_type"],"organization_id"?: string,"sort_order"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "clinic_catalog_options_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clinic_catalog_options_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"clinic_profiles": {
                   Row: {
                     "address": string,"allow_indexing": boolean,"booking_label": string,"booking_url": string,"city": string,"contact_name": string,"country": string,"cover_path": string | null,"display_name": string,"email": string,"introduction": string,"languages": string,"logo_path": string | null,"opening_hours": string,"organization_id": string,"phone": string,"postal_code": string,"published": boolean,"region": string,"slug": string,"social_links": NonNullable<Json>,"specialties": string,"updated_at": string,"website": string,"whatsapp": string
@@ -675,7 +701,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "organization_role": "clinic_admin"|"professional","photo_source": "camera"|"gallery","session_status": "draft"|"completed"|"cancelled","session_type": "baseline"|"follow_up","treatment_status": "planned"|"active"|"completed"|"cancelled","upload_status": "pending"|"uploaded"|"failed"
+            "catalog_option_type": "treatment_name"|"category"|"procedure_type"|"product"|"body_area","organization_role": "clinic_admin"|"professional","photo_source": "camera"|"gallery","session_status": "draft"|"completed"|"cancelled","session_type": "baseline"|"follow_up","treatment_status": "planned"|"active"|"completed"|"cancelled","upload_status": "pending"|"uploaded"|"failed"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -791,7 +817,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "organization_role": ["clinic_admin", "professional"],"photo_source": ["camera", "gallery"],"session_status": ["draft", "completed", "cancelled"],"session_type": ["baseline", "follow_up"],"treatment_status": ["planned", "active", "completed", "cancelled"],"upload_status": ["pending", "uploaded", "failed"]
+            "catalog_option_type": ["treatment_name", "category", "procedure_type", "product", "body_area"],"organization_role": ["clinic_admin", "professional"],"photo_source": ["camera", "gallery"],"session_status": ["draft", "completed", "cancelled"],"session_type": ["baseline", "follow_up"],"treatment_status": ["planned", "active", "completed", "cancelled"],"upload_status": ["pending", "uploaded", "failed"]
           }
         }
 } as const
