@@ -30,8 +30,7 @@ async function Content({
   searchParams: Promise<{ result?: string }>;
 }) {
   const w = await getWorkspace();
-  if (w?.kind !== "staff" || w.activeMembership?.role !== "clinic_admin")
-    redirect("/clinic");
+  if (w?.kind !== "staff" || !w.activeMembership) redirect("/clinic");
   const [profile, results, params] = await Promise.all([
     getStaffClinicProfile(w.activeMembership.organizationId),
     listStaffPublications(w.activeMembership.organizationId),

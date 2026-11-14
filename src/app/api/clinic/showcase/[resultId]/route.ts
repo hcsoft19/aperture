@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ resultId: string }> },
 ) {
   const w = await getWorkspace();
-  if (w?.kind !== "staff" || w.activeMembership?.role !== "clinic_admin")
+  if (w?.kind !== "staff" || !w.activeMembership)
     return new Response("Not available", {
       status: 403,
       headers: mediaHeaders,

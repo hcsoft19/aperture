@@ -84,9 +84,15 @@ export const clinicProfileSchema = z
     opening_hours: z.string().trim().max(600),
     booking_mode: z.enum(["none", "whatsapp", "external"]),
     booking_destination: external,
-    booking_label: z.string().trim().min(2).max(60),
+    booking_label: z.string().trim().max(60),
   })
   .superRefine((value, ctx) => {
+    if (value.booking_mode !== "none" && value.booking_label.length < 2)
+      ctx.addIssue({
+        code: "custom",
+        path: ["booking_label"],
+        message: "Enter a label for the booking button.",
+      });
     if (value.booking_mode === "whatsapp" && !whatsappUrl(value.whatsapp))
       ctx.addIssue({
         code: "custom",
