@@ -60,3 +60,5 @@ Computer vision stays on the device. Do not upload camera frames, landmarks, or 
 ## Factory
 
 Parallel implementation lanes own separate directories. A lane does not edit another lane, a migration, or `src/types/database.ts`. The integrator writes the shared migration, runs the suite, and is the only one who commits. The lane list is `docs/agent-factory.md`.
+
+When a lane finishes a Linear issue, it comments on that issue, checks only the acceptance criteria the work meets, and sets the issue to In Review. The `linear-review` agent then reviews it and marks Done only when the goal is in the product. The lane that wrote the change does not close its own issue.

@@ -667,6 +667,12 @@ isOneToOne: false
 "record_clinical_event":
 { Args: { "action": string,"entity_id": string,"entity_type": string,"metadata": Json,"target_org": string }; Returns: undefined
                            },
+"record_privacy_request":
+{ Args: { "kind": string,"target_patient": string }; Returns: string
+                           },
+"record_readiness_audit":
+{ Args: { "action": string,"status": string,"subject_id": string,"target_org": string }; Returns: undefined
+                           },
 "remove_organization_member":
 { Args: { "target_org": string,"target_profile": string }; Returns: undefined
                            },

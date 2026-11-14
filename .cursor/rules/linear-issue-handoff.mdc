@@ -1,0 +1,15 @@
+---
+description: Hand finished Linear issues to review
+alwaysApply: true
+---
+
+# Linear issue handoff
+
+When a factory agent finishes the work for a Linear issue:
+
+1. Comment on that issue. Say what changed, which acceptance criteria are met, and which are not. Keep patient names, photographs, and secrets out of the comment.
+2. Mark the definition of done in the issue description. Check only the criteria the work actually meets. Leave the rest unchecked.
+3. Set the issue to In Review. Do not set it to Done.
+4. Hand the issue to the `linear-review` agent. That agent checks the comment and the criteria against the repository. It sets Done only when the goal is in the product. Otherwise it comments on the gap and leaves the issue open.
+
+The agent that wrote the change does not close its own issue.

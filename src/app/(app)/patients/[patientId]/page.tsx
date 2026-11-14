@@ -79,6 +79,7 @@ async function PatientChartContent({ params }: ChartPageProps) {
         <Link href={`/patients/${patient.id}/timeline`} className={buttonVariants({ size: "lg", variant: "outline" })}>Timeline</Link>
         <Link href={`/patients/${patient.id}/progress`} className={buttonVariants({ size: "lg", variant: "outline" })}>Progress</Link>
         <Link href={`/patients/${patient.id}/consent`} className={buttonVariants({ size: "lg", variant: "outline" })}>Consent</Link>
+        <Link href={`/patients/${patient.id}/privacy`} className={buttonVariants({ size: "lg", variant: "outline" })}>Privacy</Link>
       </nav>
       {details.length > 0 ? (
         <dl className="grid gap-3">
