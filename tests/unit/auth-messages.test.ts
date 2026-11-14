@@ -10,6 +10,18 @@ describe("auth error messages", () => {
     expect(toAuthErrorMessage("email_not_confirmed", "fallback")).toBe(
       "Confirm your email before signing in.",
     );
+    expect(
+      toAuthErrorMessage(
+        "over_email_send_rate_limit",
+        "The reset email could not be sent. Try again.",
+      ),
+    ).toBe("Too many attempts. Wait a moment and try again.");
+    expect(
+      toAuthErrorMessage(
+        "same_password",
+        "The password could not be updated. Request a new reset link.",
+      ),
+    ).toBe("Choose a different password. This one is already in use.");
   });
 
   it("hides unrecognized auth codes", () => {

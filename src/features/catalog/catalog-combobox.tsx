@@ -70,6 +70,18 @@ export function CatalogCombobox({
 
   const canCreate = search.trim().length > 0 && !exactMatch;
 
+  const handleInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const next = event.target.value;
+      setSearch(next);
+      onChange(next.trim());
+      if (!isOpen) setIsOpen(true);
+      setHighlightedIndex(-1);
+      setCreateError(null);
+    },
+    [isOpen, onChange],
+  );
+
   const handleSelect = useCallback(
     (displayName: string) => {
       onChange(displayName);
@@ -106,7 +118,7 @@ export function CatalogCombobox({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen) {
-        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           setIsOpen(true);
           e.preventDefault();
         }
@@ -128,16 +140,20 @@ export function CatalogCombobox({
             prev > 0 ? prev - 1 : itemCount - 1,
           );
           break;
-        case "Enter":
-          e.preventDefault();
-          if (highlightedIndex === filteredOptions.length && canCreate) {
-            handleCreate();
-          } else if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
+        case "Enter": {
+          const suggestionHighlighted =
+            highlightedIndex >= 0 && highlightedIndex < filteredOptions.length;
+          if (suggestionHighlighted) {
+            e.preventDefault();
             handleSelect(filteredOptions[highlightedIndex].displayName);
-          } else if (canCreate) {
+            break;
+          }
+          if (canCreate && highlightedIndex === filteredOptions.length) {
+            e.preventDefault();
             handleCreate();
           }
           break;
+        }
         case "Escape":
           e.preventDefault();
           setIsOpen(false);
@@ -195,12 +211,7 @@ export function CatalogCombobox({
           id={id}
           type="text"
           value={isOpen ? search : value}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            if (!isOpen) setIsOpen(true);
-            setHighlightedIndex(-1);
-            setCreateError(null);
-          }}
+          onChange={handleInputChange}
           onFocus={() => {
             setSearch(value);
             setIsOpen(true);

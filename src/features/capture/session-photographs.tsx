@@ -22,7 +22,18 @@ export function SessionPhotographs({
       className="grid grid-cols-2 gap-3 sm:grid-cols-3"
     >
       {photos.map((photo) => (
-        <li key={photo.id}>
+        <li
+          key={photo.id}
+          className="overflow-hidden rounded-xl border border-border bg-card"
+        >
+          {patientId ? (
+            <Link
+              href={`/patients/${patientId}/photos/${photo.id}/edit?from=${encodeURIComponent(returnTo ?? `/capture/${photo.sessionId}`)}`}
+              className="inline-flex min-h-11 items-center px-3 text-sm font-medium"
+            >
+              Edit {photo.angleName}
+            </Link>
+          ) : null}
           <Link
             aria-label={`View ${photo.angleName} photograph`}
             prefetch={false}
@@ -33,16 +44,8 @@ export function SessionPhotographs({
                 ? `/api/clinic-photos/${photo.id}`
                 : `/capture/${photo.sessionId}`
             }
-            className="group block overflow-hidden rounded-xl border border-border bg-card"
+            className="group block"
           >
-            {patientId ? (
-              <Link
-                href={`/patients/${patientId}/photos/${photo.id}/edit?from=${encodeURIComponent(returnTo ?? `/capture/${photo.sessionId}`)}`}
-                className="inline-flex min-h-11 items-center px-3 text-sm font-medium"
-              >
-                Edit {photo.angleName}
-              </Link>
-            ) : null}
             <div className="relative aspect-[3/4] bg-muted">
               <Image
                 src={`/api/clinic-photos/${photo.id}`}

@@ -194,7 +194,7 @@ export function PublicationManager({
           {results.map((result) => (
             <li
               key={result.id}
-              className="overflow-hidden rounded-2xl border border-border bg-card"
+              className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card"
             >
               {result.revoked ? (
                 <div className="rounded-xl bg-muted p-6 text-base text-muted-foreground">
@@ -272,6 +272,7 @@ export function PublicationManager({
                         size="lg"
                         variant="outline"
                         disabled={busy}
+                        className="whitespace-normal h-auto min-h-11 max-w-full w-full text-left shrink"
                         onClick={async () => {
                           setBusy(true);
                           try {

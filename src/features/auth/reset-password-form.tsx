@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -49,6 +50,14 @@ export function ResetPasswordForm() {
         error={form.formState.errors.confirmPassword?.message}
         registration={form.register("confirmPassword")}
       />
+      <div className="flex justify-end">
+        <Link
+          href="/forgot-password"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+        >
+          Forgot password?
+        </Link>
+      </div>
       <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Saving…" : "Update password"}
       </Button>

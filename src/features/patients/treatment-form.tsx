@@ -22,6 +22,7 @@ import {
   treatmentSchema,
   type TreatmentValues,
 } from "@/features/patients/schemas";
+import { parseFollowUpDaysInput } from "@/features/treatment-templates/model";
 
 type CatalogOptions = Record<CatalogOptionType, CatalogOption[]>;
 
@@ -32,6 +33,7 @@ type TreatmentFormProps = {
   catalogOptions: CatalogOptions;
   submitLabel: string;
   pendingLabel: string;
+  plannedFollowUp?: { days: number | null };
 };
 
 export function TreatmentForm({
@@ -41,8 +43,13 @@ export function TreatmentForm({
   catalogOptions,
   submitLabel,
   pendingLabel,
+  plannedFollowUp,
 }: TreatmentFormProps) {
   const [message, setMessage] = useState<string | null>(null);
+  const [followUpInput, setFollowUpInput] = useState(
+    plannedFollowUp?.days == null ? "" : String(plannedFollowUp.days),
+  );
+  const [followUpError, setFollowUpError] = useState<string | null>(null);
   const form = useForm<TreatmentValues>({
     resolver: zodResolver(treatmentSchema),
     defaultValues,
@@ -51,8 +58,28 @@ export function TreatmentForm({
 
   const onSubmit = form.handleSubmit(async (values) => {
     setMessage(null);
-    const result = treatmentId
-      ? await updateTreatmentAction(patientId, treatmentId, values)
+    setFollowUpError(null);
+
+    if (treatmentId) {
+      const result = await updateTreatmentAction(patientId, treatmentId, values);
+      if (result?.status === "error") {
+        setMessage(result.message);
+      }
+      return;
+    }
+
+    let followUpDays: number | null = null;
+    if (plannedFollowUp) {
+      const parsedFollowUp = parseFollowUpDaysInput(followUpInput);
+      if (!parsedFollowUp.ok) {
+        setFollowUpError(parsedFollowUp.message);
+        return;
+      }
+      followUpDays = parsedFollowUp.days;
+    }
+
+    const result = plannedFollowUp
+      ? await createTreatmentAction(patientId, values, followUpDays)
       : await createTreatmentAction(patientId, values);
     if (result?.status === "error") {
       setMessage(result.message);
@@ -149,6 +176,33 @@ export function TreatmentForm({
           ))}
         </select>
       </div>
+      {plannedFollowUp ? (
+        <div className="flex flex-col gap-2">
+          <Label className="text-base" htmlFor="treatment-follow-up">
+            Follow-up days
+          </Label>
+          <Input
+            id="treatment-follow-up"
+            inputMode="numeric"
+            value={followUpInput}
+            aria-invalid={followUpError ? true : undefined}
+            aria-describedby={
+              followUpError
+                ? "treatment-follow-up-hint treatment-follow-up-error"
+                : "treatment-follow-up-hint"
+            }
+            onChange={(event) => setFollowUpInput(event.target.value)}
+          />
+          <p id="treatment-follow-up-hint" className="text-base leading-7 text-muted-foreground">
+            Optional. From the template. Enter 1 to 3650 days, or leave blank.
+          </p>
+          {followUpError ? (
+            <p id="treatment-follow-up-error" className="text-base text-destructive" role="alert">
+              {followUpError}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <TextField
         id="treatment-start"
         label="Start date"

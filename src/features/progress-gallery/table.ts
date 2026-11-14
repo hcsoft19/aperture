@@ -4,7 +4,7 @@ import type { ProgressRelease } from "@/features/progress-gallery/model";
 import type { Database } from "@/types/database";
 
 export const PROGRESS_RELEASE_COLUMNS =
-  "id, organization_id, patient_id, comparison_id, photo_id, released_by, revoked_at, created_at" as const;
+  "id, organization_id, patient_id, comparison_id, photo_id, derivative_id, released_by, revoked_at, created_at" as const;
 
 export type ProgressReleaseRow = {
   id: string;
@@ -12,6 +12,7 @@ export type ProgressReleaseRow = {
   patient_id: string;
   comparison_id: string | null;
   photo_id: string | null;
+  derivative_id: string | null;
   released_by: string;
   revoked_at: string | null;
   created_at: string;
@@ -21,7 +22,8 @@ type ReleaseInsert = {
   organization_id: string;
   patient_id: string;
   comparison_id: string | null;
-  photo_id: string | null;
+  photo_id: null;
+  derivative_id: string | null;
   released_by: string;
 };
 
@@ -32,7 +34,7 @@ type ReleaseResult<T> = {
 
 type ReleaseRead = {
   eq: (
-    column: "id" | "organization_id" | "patient_id" | "comparison_id" | "photo_id",
+    column: "id" | "organization_id" | "patient_id" | "comparison_id" | "photo_id" | "derivative_id",
     value: string,
   ) => ReleaseRead;
   order: (
@@ -59,7 +61,6 @@ type ReleaseTable = {
 };
 
 /**
- * Generated database types do not list progress_releases yet.
  * Queries stay on the signed-in client so row security still applies.
  */
 export function progressReleases(supabase: SupabaseClient<Database>) {
@@ -76,6 +77,7 @@ export function toProgressRelease(row: ProgressReleaseRow): ProgressRelease {
     patientId: row.patient_id,
     comparisonId: row.comparison_id,
     photoId: row.photo_id,
+    derivativeId: row.derivative_id,
     releasedBy: row.released_by,
     revokedAt: row.revoked_at,
     createdAt: row.created_at,

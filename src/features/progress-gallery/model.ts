@@ -19,8 +19,10 @@ export type ProgressRelease = {
   organizationId: string;
   patientId: string;
   comparisonId: string | null;
-  /** Derivative id stored in progress_releases.photo_id. */
+  /** Original photograph. This column is not a patient release. */
   photoId: string | null;
+  /** Edited photograph stored in progress_releases.derivative_id. */
+  derivativeId: string | null;
   releasedBy: string;
   revokedAt: string | null;
   createdAt: string;
@@ -88,6 +90,7 @@ export function revoke(release: ProgressRelease, now: Date): ProgressRelease {
     patientId: release.patientId,
     comparisonId: release.comparisonId,
     photoId: release.photoId,
+    derivativeId: release.derivativeId,
     releasedBy: release.releasedBy,
     createdAt: release.createdAt,
     revokedAt,
@@ -144,8 +147,10 @@ function patientView(
   }
 
   const comparisonId = uuidOrNull(release.comparisonId);
-  const derivativeId = uuidOrNull(release.photoId);
-  if (Boolean(comparisonId) === Boolean(derivativeId)) {
+  const derivativeId = uuidOrNull(release.derivativeId);
+  const photoId = uuidOrNull(release.photoId);
+  const targetCount = [comparisonId, derivativeId, photoId].filter(Boolean).length;
+  if (targetCount !== 1) {
     return null;
   }
 

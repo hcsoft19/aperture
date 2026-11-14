@@ -26,4 +26,5 @@ export {
   unloadModel,
   getCurrentModelId,
   isModelLoaded,
+  modelUsesEdgeHeuristic,
 } from "./model-loader";

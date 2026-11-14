@@ -89,7 +89,7 @@ export function buildQueue(input: QueueInput): QueueView {
         "consent",
         patient.id,
         `Record photography consent for ${named(patient.name, "this patient")}`,
-        patientHref(patient.id),
+        consentHref(patient.id),
       ),
     );
 
@@ -157,8 +157,8 @@ function captureHref(sessionId: string) {
   return `/capture/${encodeURIComponent(sessionId)}`;
 }
 
-function patientHref(patientId: string) {
-  return `/patients/${encodeURIComponent(patientId)}`;
+function consentHref(patientId: string) {
+  return `/patients/${encodeURIComponent(patientId)}/consent`;
 }
 
 function named(value: string, fallback: string) {

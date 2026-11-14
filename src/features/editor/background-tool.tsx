@@ -7,8 +7,11 @@ import {
   getModelLoaderState,
   isModelLoaded,
   loadModel,
+  LOCAL_ADAPTER_VERSION,
+  modelUsesEdgeHeuristic,
   segment,
   subscribeToModelLoader,
+  unloadModel,
   type BackgroundRemovalEdit,
   type SegmentationModelId,
   type SegmentationResult,
@@ -27,7 +30,9 @@ interface BackgroundToolProps {
   onPreviewReady: (result: RenderBackgroundResult | null) => void;
 }
 
-type ProcessingState = "idle" | "loading" | "processing" | "ready" | "error";
+type ProcessingState = "idle" | "loading" | "processing" | "ready" | "unavailable" | "error";
+
+const CLEAN_CUTOUT_UNAVAILABLE = "A clean cutout is not available.";
 
 export function BackgroundTool({
   enabled,
@@ -74,6 +79,14 @@ export function BackgroundTool({
     onPreviewReady(result);
   }, [enabled, bitmap, mask, edit, onPreviewReady]);
 
+  const refuseApproximateCutout = useCallback(() => {
+    setMask(null);
+    onPreviewReady(null);
+    setError(null);
+    setProcessingState("unavailable");
+    if (isModelLoaded()) unloadModel();
+  }, [onPreviewReady]);
+
   const handleRemoveBackground = useCallback(async () => {
     if (!bitmap) return;
 
@@ -85,6 +98,13 @@ export function BackgroundTool({
     const signal = abortControllerRef.current.signal;
 
     setError(null);
+
+    // The local segmenter is an edge heuristic. Do not load it as a model or replace the photograph.
+    if (modelUsesEdgeHeuristic(edit.modelId)) {
+      refuseApproximateCutout();
+      return;
+    }
+
     setProcessingState("loading");
 
     try {
@@ -108,6 +128,11 @@ export function BackgroundTool({
 
       if (signal.aborted) return;
 
+      if (result.ok && result.modelVersion === LOCAL_ADAPTER_VERSION) {
+        refuseApproximateCutout();
+        return;
+      }
+
       if (result.ok) {
         setMask(result.mask);
         onChange({
@@ -126,7 +151,7 @@ export function BackgroundTool({
         setProcessingState("error");
       }
     }
-  }, [bitmap, edit, onChange]);
+  }, [bitmap, edit, onChange, refuseApproximateCutout]);
 
   const handleCancel = useCallback(() => {
     if (abortControllerRef.current) {
@@ -149,7 +174,7 @@ export function BackgroundTool({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
-        {processingState === "idle" || processingState === "error" ? (
+        {processingState === "idle" || processingState === "error" || processingState === "unavailable" ? (
           <button
             type="button"
             className="min-h-11 rounded-md bg-primary px-4 font-medium text-primary-foreground disabled:opacity-50"
@@ -201,7 +226,13 @@ export function BackgroundTool({
         </p>
       )}
 
-      {(processingState === "ready" || enabled) && (
+      {processingState === "unavailable" ? (
+        <p className="text-base" role="status">
+          {CLEAN_CUTOUT_UNAVAILABLE}
+        </p>
+      ) : null}
+
+      {processingState !== "unavailable" && (processingState === "ready" || enabled) && (
         <>
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Background Color</label>

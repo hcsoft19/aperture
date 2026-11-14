@@ -97,6 +97,44 @@ async function staffWorkspace() {
   return workspace;
 }
 
+export async function getTreatmentTemplateAction(
+  templateId: string,
+): Promise<
+  | { status: "ready"; template: TreatmentTemplate }
+  | { status: "missing" }
+  | { status: "error"; message: string }
+> {
+  if (!isUuid(templateId)) {
+    return { status: "missing" };
+  }
+
+  const workspace = await staffWorkspace();
+  if (!workspace?.activeMembership) {
+    return {
+      status: "error",
+      message: "Treatment templates are limited to clinic staff.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await treatmentTemplates(supabase)
+    .select(TEMPLATE_COLUMNS)
+    .eq("id", templateId)
+    .eq("organization_id", workspace.activeMembership.organizationId)
+    .is("archived_at", null)
+    .maybeSingle();
+
+  if (error) {
+    return { status: "error", message: "The template could not be loaded." };
+  }
+
+  if (!data) {
+    return { status: "missing" };
+  }
+
+  return { status: "ready", template: toTreatmentTemplate(data) };
+}
+
 export async function listTreatmentTemplatesAction(): Promise<TemplateListResult> {
   const workspace = await staffWorkspace();
   if (!workspace?.activeMembership) {

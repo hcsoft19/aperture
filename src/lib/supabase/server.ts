@@ -18,6 +18,11 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(env.url, env.publishableKey, {
+    auth: {
+      experimental: {
+        appendPkceFlowIdToRedirects: true,
+      },
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getWorkspace } from "@/features/access/workspace";
+import { scheduleReminder } from "@/features/follow-ups/reminders";
+import { followUpReminders } from "@/features/follow-ups/table";
 import {
   patientSchema,
   treatmentSchema,
@@ -129,14 +131,18 @@ export async function updatePatientAction(
 export async function createTreatmentAction(
   patientId: string,
   values: TreatmentValues,
+  followUpDays?: number | null,
 ): Promise<ChartActionResult> {
   const parsed = treatmentSchema.safeParse(values);
+  const plannedFollowUp = plannedFollowUpDays(followUpDays);
 
-  if (!parsed.success || !isUuid(patientId)) {
+  if (!parsed.success || !isUuid(patientId) || plannedFollowUp === "invalid") {
     return {
       status: "error",
       message: parsed.success
-        ? "The treatment could not be saved."
+        ? plannedFollowUp === "invalid"
+          ? "Enter between 1 and 3650 days."
+          : "The treatment could not be saved."
         : (parsed.error.issues[0]?.message ??
           "Check the treatment and try again."),
     };
@@ -184,9 +190,47 @@ export async function createTreatmentAction(
     return { status: "error", message: "The treatment could not be saved." };
   }
 
+  if (plannedFollowUp !== null) {
+    try {
+      const fromDate =
+        parsed.data.startDate.length > 0
+          ? parsed.data.startDate
+          : new Date().toISOString().slice(0, 10);
+      const scheduled = scheduleReminder({
+        treatmentId: data.id,
+        fromDate,
+        followUpDays: plannedFollowUp,
+      });
+      const { error: reminderError } = await followUpReminders(supabase).insert({
+        organization_id: workspace.activeMembership.organizationId,
+        treatment_id: data.id,
+        due_on: scheduled.dueOn,
+        note: null,
+        created_by: workspace.user.id,
+      });
+      if (!reminderError) {
+        revalidatePath("/clinic/reminders");
+      }
+    } catch {
+      // The new treatment is already saved. Leave it in place.
+    }
+  }
+
   revalidatePath("/home");
   revalidatePath(`/patients/${patientId}`);
   redirect(`/patients/${patientId}/treatments/${data.id}`);
+}
+
+function plannedFollowUpDays(value: number | null | undefined) {
+  if (value == null) {
+    return null;
+  }
+
+  if (!Number.isInteger(value) || value < 1 || value > 3650) {
+    return "invalid" as const;
+  }
+
+  return value;
 }
 
 export async function updateTreatmentAction(

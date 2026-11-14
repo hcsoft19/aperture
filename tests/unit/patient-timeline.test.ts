@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildTimeline,
   EMPTY_TIMELINE_MESSAGE,
+  timelineImageAddress,
   type TimelineInput,
 } from "@/features/patient-timeline/model";
 
@@ -123,6 +124,85 @@ describe("patient timeline", () => {
     expect(patientFollowUp.hiddenLabel).toBeNull();
     expect(patient.hiddenImageCount).toBe(0);
     expect(JSON.stringify(patient)).not.toContain("side.jpg");
+  });
+
+  it("omits unreleased treatment titles for a patient and shows a released preview", () => {
+    const signedPreview =
+      "https://example.supabase.co/storage/v1/object/sign/clinical-photos/front.jpg?token=signed";
+    const input = {
+      viewer: "patient",
+      treatments: [
+        {
+          id: "never-released",
+          name: "Peel",
+          date: "2024-03-01",
+          sessions: [
+            {
+              id: "private-visit",
+              date: "2024-03-01",
+              sessionType: "baseline",
+              images: [
+                {
+                  id: "private-front",
+                  label: "Front",
+                  imageReleased: false,
+                  src: "/api/clinic-photos/private-front",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "released-care",
+          name: "Filler",
+          date: "2024-05-01",
+          sessions: [
+            {
+              id: "released-visit",
+              date: "2024-05-02",
+              sessionType: "follow_up",
+              images: [
+                {
+                  id: "public-front",
+                  label: "Front",
+                  imageReleased: true,
+                  src: signedPreview,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    } satisfies TimelineInput;
+
+    const patient = buildTimeline(input);
+    const releasedVisit = patient.entries.find((entry) => entry.id === "released-visit");
+
+    expect(patient.entries.map((entry) => entry.id)).toEqual(["released-care", "released-visit"]);
+    expect(JSON.stringify(patient)).not.toContain("Peel");
+    expect(JSON.stringify(patient)).not.toContain("/api/clinic-photos");
+    if (releasedVisit?.kind !== "session") {
+      throw new Error("Expected the released visit.");
+    }
+    expect(releasedVisit.images).toEqual([{ id: "public-front", label: "Front", src: signedPreview }]);
+
+    const staff = buildTimeline({ ...input, viewer: "staff" });
+    expect(staff.entries.map((entry) => entry.id)).toEqual([
+      "never-released",
+      "private-visit",
+      "released-care",
+      "released-visit",
+    ]);
+    expect(staff.entries.find((entry) => entry.id === "private-visit")).toMatchObject({
+      hiddenImageCount: 1,
+      hiddenLabel: "1 photograph is not released.",
+    });
+    expect(timelineImageAddress("staff", true, "public-front", signedPreview)).toBe(
+      "/api/clinic-photos/public-front",
+    );
+    expect(timelineImageAddress("patient", true, "public-front", signedPreview)).toBe(signedPreview);
+    expect(timelineImageAddress("patient", true, "public-front", "/api/clinic-photos/public-front")).toBeNull();
+    expect(timelineImageAddress("patient", false, "private-front", signedPreview)).toBeNull();
   });
 
   it("returns an empty state message for empty input", () => {

@@ -52,7 +52,17 @@ const result: GalleryResult = {
     width: 1200,
     height: 1600,
   },
-  alignment: { x: 0, y: 0, rotation: 0, scale: 1, aligned: true },
+  alignment: {
+    x: 0,
+    y: 0,
+    rotation: 0,
+    scale: 1,
+    aligned: true,
+    layout: "side_by_side",
+    syncFraming: false,
+    beforeZoom: 1,
+    afterZoom: 1,
+  },
 };
 const cursor = {
   createdAt: result.createdAt,

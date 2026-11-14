@@ -194,3 +194,10 @@ export function getCurrentModelId(): SegmentationModelId | null {
 export function isModelLoaded(): boolean {
   return state.loadingState === "loaded" && state.adapter?.isLoaded() === true;
 }
+
+/** Named cutout models currently share the on-device edge heuristic. */
+export function modelUsesEdgeHeuristic(modelId: SegmentationModelId): boolean {
+  const factory = adapters[modelId];
+  if (!factory) return false;
+  return factory() instanceof LocalSegmentationAdapter;
+}

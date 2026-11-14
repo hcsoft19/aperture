@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { archiveTreatmentTemplateAction } from "@/features/treatment-templates/actions";
 import {
+  choosePatientForTemplateHref,
   protocolLabel,
   type TreatmentTemplate,
 } from "@/features/treatment-templates/model";
@@ -66,19 +68,28 @@ export function TreatmentTemplateList({
                   <dd>{followUpLabel(template.followUpDays)}</dd>
                 </div>
               </dl>
-              {canArchive ? (
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  className="mt-4 cursor-pointer"
-                  disabled={pendingId !== null}
-                  aria-label={`Archive ${template.name}`}
-                  onClick={() => onArchive(template)}
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link
+                  href={choosePatientForTemplateHref(template.id)}
+                  className={buttonVariants({ size: "lg" })}
+                  aria-label={`Start a treatment from ${template.name}`}
                 >
-                  {pendingId === template.id ? "Archiving…" : "Archive"}
-                </Button>
-              ) : null}
+                  Start treatment
+                </Link>
+                {canArchive ? (
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    className="cursor-pointer"
+                    disabled={pendingId !== null}
+                    aria-label={`Archive ${template.name}`}
+                    onClick={() => onArchive(template)}
+                  >
+                    {pendingId === template.id ? "Archiving…" : "Archive"}
+                  </Button>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

@@ -37,6 +37,34 @@ export async function describePhotograph(file: Blob): Promise<PhotographDetails 
   }
 }
 
+export async function jpegFromDecodedBitmap(file: Blob): Promise<Blob | null> {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return null;
+  }
+
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d");
+    if (!context || canvas.width < 1 || canvas.height < 1) {
+      return null;
+    }
+
+    context.drawImage(bitmap, 0, 0);
+    return await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", 0.92);
+    });
+  } catch {
+    return null;
+  } finally {
+    bitmap.close();
+  }
+}
+
 export async function frameFromVideo(video: HTMLVideoElement) {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;

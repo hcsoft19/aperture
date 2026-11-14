@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyTemplate,
+  choosePatientForTemplateHref,
+  newTreatmentFromTemplateHref,
+  parseFollowUpDaysInput,
+  templateQueryId,
   templatesForOrganization,
+  treatmentFormValuesFromDraft,
   treatmentTemplateSchema,
   type TreatmentTemplate,
 } from "@/features/treatment-templates/model";
@@ -144,5 +149,62 @@ describe("applyTemplate", () => {
       followUpDays: 14,
       status: "planned",
     });
+  });
+});
+
+describe("starting a treatment from a template", () => {
+  const templateId = "10000000-0000-4000-8000-000000000010";
+
+  it("keeps only a single template id from the query", () => {
+    expect(templateQueryId(undefined)).toBeNull();
+    expect(templateQueryId(null)).toBeNull();
+    expect(templateQueryId([templateId])).toBeNull();
+    expect(templateQueryId("not-a-uuid")).toBeNull();
+    expect(templateQueryId(templateId)).toBe(templateId);
+  });
+
+  it("sends the clinic to choose a patient, then opens a new treatment", () => {
+    expect(choosePatientForTemplateHref(templateId)).toBe(
+      `/patients?template=${templateId}`,
+    );
+    expect(newTreatmentFromTemplateHref(patientId, templateId)).toBe(
+      `/patients/${patientId}/treatments/new?template=${templateId}`,
+    );
+  });
+
+  it("prefills a new form from the draft and omits any treatment id", () => {
+    const values = treatmentFormValuesFromDraft(
+      applyTemplate(
+        template({ protocolCode: "DENTAL_STANDARD", followUpDays: null }),
+        patientId,
+      ),
+    );
+
+    expect(values).not.toHaveProperty("id");
+    expect(values).toEqual({
+      name: "Lip filler",
+      category: "Injectables",
+      bodyArea: "Lips",
+      description: "",
+      startDate: "",
+      procedureType: "",
+      productName: "",
+      protocolCode: "DENTAL_STANDARD",
+      followUpDays: null,
+      status: "planned",
+    });
+    expect(
+      treatmentFormValuesFromDraft(
+        applyTemplate(template({ protocolCode: "CUSTOM" }), patientId),
+      ).protocolCode,
+    ).toBe("FACE_STANDARD");
+  });
+
+  it("accepts a blank follow-up and rejects a count outside 1 to 3650", () => {
+    expect(parseFollowUpDaysInput("")).toEqual({ ok: true, days: null });
+    expect(parseFollowUpDaysInput(" 14 ")).toEqual({ ok: true, days: 14 });
+    expect(parseFollowUpDaysInput("0").ok).toBe(false);
+    expect(parseFollowUpDaysInput("3651").ok).toBe(false);
+    expect(parseFollowUpDaysInput("14 days").ok).toBe(false);
   });
 });

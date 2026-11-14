@@ -42,7 +42,7 @@ async function TreatmentsContent() {
     <section className="flex max-w-2xl flex-col gap-4">
       <h1 className="text-2xl font-semibold tracking-tight">Your treatments</h1>
       <p className="text-base leading-7 text-muted-foreground">
-        Only sessions and comparisons a clinic has released appear here.
+        Only sessions, comparisons, and edited photographs a clinic has released appear here.
       </p>
       {records.length === 0 ? (
         <p className="text-base text-muted-foreground">Nothing has been released yet.</p>
@@ -56,7 +56,7 @@ async function TreatmentsContent() {
               >
                 <span className="font-medium">{record.treatmentName}</span>
                 <span className="text-sm text-muted-foreground">
-                  {record.clinicName} · {record.patientName} · {record.releasedSessions} released · {record.sharedComparisons} shared
+                  {record.clinicName} · {record.patientName} · {releasedCounts(record)}
                 </span>
               </Link>
             </li>
@@ -65,4 +65,18 @@ async function TreatmentsContent() {
       )}
     </section>
   );
+}
+
+function releasedCounts(record: {
+  releasedSessions: number;
+  sharedComparisons: number;
+  releasedEdits: number;
+}) {
+  return [
+    record.releasedSessions > 0 ? `${record.releasedSessions} released` : null,
+    record.sharedComparisons > 0 ? `${record.sharedComparisons} shared` : null,
+    record.releasedEdits > 0 ? `${record.releasedEdits} edited` : null,
+  ]
+    .filter((count) => count !== null)
+    .join(" · ");
 }

@@ -127,6 +127,18 @@ export async function signUpAction(
     redirect("/home");
   }
 
+  // Email confirmation hides an existing account as a user with no identities
+  // and no session. A new account still has an identity and no session.
+  if (data.user?.identities?.length === 0) {
+    return {
+      status: "error",
+      message: toAuthErrorMessage(
+        "user_already_exists",
+        "An account with this email already exists. Sign in instead.",
+      ),
+    };
+  }
+
   return {
     status: "success",
     message: "Account created. Check your email to confirm it before signing in.",

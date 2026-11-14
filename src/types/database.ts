@@ -635,6 +635,56 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"progress_releases": {
+                  Row: {
+                    "comparison_id": string | null,"created_at": string,"derivative_id": string | null,"id": string,"organization_id": string,"patient_id": string,"photo_id": string | null,"released_by": string,"revoked_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "comparison_id"?: string | null,"created_at"?: string,"derivative_id"?: string | null,"id"?: string,"organization_id": string,"patient_id": string,"photo_id"?: string | null,"released_by": string,"revoked_at"?: string | null
+                  }
+                  Update: {
+                    "comparison_id"?: string | null,"created_at"?: string,"derivative_id"?: string | null,"id"?: string,"organization_id"?: string,"patient_id"?: string,"photo_id"?: string | null,"released_by"?: string,"revoked_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "progress_releases_comparison_id_fkey"
+      columns: ["comparison_id"]
+isOneToOne: false
+      referencedRelation: "comparisons"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "progress_releases_derivative_id_fkey"
+      columns: ["derivative_id"]
+isOneToOne: false
+      referencedRelation: "photo_derivatives"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "progress_releases_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "progress_releases_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+      referencedRelation: "patients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "progress_releases_photo_id_fkey"
+      columns: ["photo_id"]
+isOneToOne: false
+      referencedRelation: "photos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "progress_releases_released_by_fkey"
+      columns: ["released_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"treatments": {
                   Row: {
                     "body_area": string,"category": string,"created_at": string,"created_by": string,"description": string | null,"id": string,"name": string,"patient_id": string,"procedure_type": string,"product_name": string,"protocol_code": string,"start_date": string | null,"status": Database["public"]['Enums']["treatment_status"],"updated_at": string
@@ -686,6 +736,9 @@ isOneToOne: false
                            },
 "create_organization":
 { Args: { "org_name": string }; Returns: string
+                           },
+"patient_released_edits":
+{ Args: never; Returns: Json
                            },
 "prepare_clinic_publication":
 { Args: { "payload": Json }; Returns: string

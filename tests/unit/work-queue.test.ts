@@ -65,7 +65,7 @@ describe("work queue", () => {
     const hrefs = view.items.map((item) => item.href);
 
     expect(hrefs).toContain("/capture/draft-here");
-    expect(hrefs).toContain("/patients/patient-here");
+    expect(hrefs).toContain("/patients/patient-here/consent");
     expect(hrefs).not.toContain("/capture/draft-there");
     expect(hrefs).not.toContain("/capture/done-there");
     expect(hrefs).not.toContain("/capture/cancelled-here");
@@ -149,7 +149,7 @@ describe("work queue", () => {
     });
     expect(view.items[2]).toMatchObject({
       kind: "consent",
-      href: "/patients/patient-grace",
+      href: "/patients/patient-grace/consent",
       label: "Record photography consent for Grace Hopper",
     });
     expect(view.items[3]).toMatchObject({

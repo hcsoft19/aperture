@@ -428,7 +428,7 @@ export function ClinicContact({ profile }: { profile: ClinicProfile }) {
                   className="size-5 shrink-0 text-primary"
                 />
                 <a
-                  href={`mailto:${encodeURIComponent(profile.email)}`}
+                  href={`mailto:${profile.email}`}
                   className="inline-flex min-h-11 break-all items-center"
                 >
                   {profile.email}

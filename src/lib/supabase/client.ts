@@ -12,5 +12,11 @@ export function createClient() {
     );
   }
 
-  return createBrowserClient<Database>(env.url, env.publishableKey);
+  return createBrowserClient<Database>(env.url, env.publishableKey, {
+    auth: {
+      experimental: {
+        appendPkceFlowIdToRedirects: true,
+      },
+    },
+  });
 }

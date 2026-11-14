@@ -33,7 +33,10 @@ async function ClinicReports() {
     );
   }
 
-  const preview = buildReport(sampleReportInput);
+  const preview = buildReport({
+    ...sampleReportInput,
+    clinicName: workspace.activeMembership.organizationName,
+  });
   if (!preview.ok) {
     return <ChartMessage title="Clinic reports" message={reportRefusalMessage[preview.reason]} />;
   }

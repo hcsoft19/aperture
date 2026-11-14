@@ -104,7 +104,8 @@ async function releaseProgress(formData: FormData): Promise<ProgressActionResult
       organization_id: staff.organizationId,
       patient_id: parsed.data.patientId,
       comparison_id: target.kind === "comparison" ? target.id : null,
-      photo_id: target.kind === "derivative" ? target.id : null,
+      photo_id: null,
+      derivative_id: target.kind === "derivative" ? target.id : null,
       released_by: staff.userId,
     })
     .select("id");
@@ -250,7 +251,7 @@ async function derivativeTarget(
       };
     }
 
-    return { ok: true, kind: "derivative", id: data.id, column: "photo_id" };
+    return { ok: true, kind: "derivative", id: data.id, column: "derivative_id" };
   }
 
   if (await originalInClinic(supabase, organizationId, patientId, derivativeId)) {
@@ -318,7 +319,7 @@ type TargetResult =
       ok: true;
       kind: "comparison" | "derivative";
       id: string;
-      column: "comparison_id" | "photo_id";
+      column: "comparison_id" | "derivative_id";
     }
   | ProgressActionResult;
 

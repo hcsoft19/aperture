@@ -5,6 +5,8 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   email_exists: "An account with this email already exists. Sign in instead.",
   weak_password: "Choose a password with at least 8 characters.",
   over_request_rate_limit: "Too many attempts. Wait a moment and try again.",
+  over_email_send_rate_limit: "Too many attempts. Wait a moment and try again.",
+  same_password: "Choose a different password. This one is already in use.",
   user_banned: "This account cannot sign in. Contact your clinic administrator.",
 };
 

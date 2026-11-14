@@ -55,9 +55,9 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
         ))}
       </div>
       {layout !== "slider" ? (
-        <div className={layout === "stack" ? "mt-4 grid gap-2" : "mt-4 grid grid-cols-2 gap-2"}>
+        <div className={layout === "stack" ? "mt-4 grid gap-2" : "mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2"}>
           {[{ url: before, label: "Baseline", zoom: beforeZoom }, { url: after, label: "Follow-up", zoom: afterZoom }].map((photo) => (
-            <figure key={photo.label}>
+            <figure key={photo.label} className="min-w-0 overflow-hidden">
               <Image src={photo.url} alt={`${photo.label} photograph`} width={600} height={800} unoptimized className="aspect-[3/4] w-full rounded-lg object-contain bg-muted" style={{ transform: photo.label === "Follow-up" ? `translate(${alignment.x}%, ${alignment.y}%) rotate(${alignment.rotation}deg) scale(${alignment.scale * photo.zoom})` : `scale(${photo.zoom})` }} />
               <figcaption className="mt-2 text-sm font-medium">{photo.label}</figcaption>
             </figure>
@@ -67,7 +67,7 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
       {layout === "slider" ? (
         <>
           <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-lg bg-muted">
-            <Image src={before} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" />
+            <Image src={before} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" style={{ transform: `scale(${beforeZoom})` }} />
             <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
               <Image src={after} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" style={{ transform: `translate(${alignment.x}%, ${alignment.y}%) rotate(${alignment.rotation}deg) scale(${alignment.scale * afterZoom})` }} />
             </div>

@@ -32,10 +32,12 @@ export async function renderEditBlob(
     context.restore();
   }
 
-  if (layout.presentationEdited) {
-    context.font = "16px sans-serif";
+  const labelSize = 16;
+  if (layout.presentationEdited && edit.canvas.padding >= labelSize) {
+    context.font = `${labelSize}px sans-serif`;
     context.fillStyle = edit.canvas.background === "#000000" ? "#FFFFFF" : "#292327";
-    context.fillText("Presentation edit", 12, Math.max(20, layout.height - 16));
+    context.textBaseline = "top";
+    context.fillText("Presentation edit", 12, layout.height - labelSize);
   }
 
   const blob = await new Promise<Blob | null>((resolve) => {

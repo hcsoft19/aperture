@@ -17,8 +17,12 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login?error=auth", url.origin));
   }
 
+  const flowId = url.searchParams.get("sb_flow_id");
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { error } = await supabase.auth.exchangeCodeForSession(
+    code,
+    flowId ? { flowId } : undefined,
+  );
 
   if (error) {
     return NextResponse.redirect(new URL("/login?error=auth", url.origin));

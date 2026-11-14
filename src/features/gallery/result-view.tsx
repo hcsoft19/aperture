@@ -8,13 +8,16 @@ import { buttonVariants } from "@/components/ui/button";
 import { galleryDate, type GalleryResult } from "./models";
 
 export function ResultView({ result }: { result: GalleryResult }) {
-  const [mode, setMode] = useState<"pair" | "slider" | "stack">("pair");
+  const [mode, setMode] = useState<"pair" | "slider" | "stack">(() =>
+    result.alignment.layout === "side_by_side" ? "pair" : result.alignment.layout,
+  );
   const [split, setSplit] = useState(50);
   const treatmentUrl = `/patients/${result.patientId}/treatments/${result.treatmentId}`;
-  const transform = `translate(${result.alignment.x}%, ${result.alignment.y}%) rotate(${result.alignment.rotation}deg) scale(${result.alignment.scale})`;
+  const beforeTransform = `scale(${result.alignment.beforeZoom})`;
+  const afterTransform = `translate(${result.alignment.x}%, ${result.alignment.y}%) rotate(${result.alignment.rotation}deg) scale(${result.alignment.scale * result.alignment.afterZoom})`;
   return (
     <div className="grid gap-7 lg:grid-cols-[1.5fr_1fr]">
-      <div>
+      <div className="min-w-0">
         {!result.isPlate && result.entryKind !== "session" && (
           <div
             className="mb-4 flex flex-wrap gap-2"
@@ -87,20 +90,27 @@ export function ResultView({ result }: { result: GalleryResult }) {
             try again.
           </div>
         ) : mode !== "slider" ? (
-          <div className={mode === "stack" ? "grid gap-3" : "grid grid-cols-2 gap-3"}>
+          <div
+            className={
+              mode === "stack"
+                ? "grid min-w-0 gap-3"
+                : "grid min-w-0 max-w-full grid-cols-1 gap-3 overflow-hidden sm:grid-cols-2"
+            }
+          >
             {[
-              { ...result.before, label: "Before" },
-              { ...result.after, label: "After" },
+              { ...result.before, label: "Before", transform: beforeTransform },
+              { ...result.after, label: "After", transform: afterTransform },
             ].map((photo) => (
-              <figure key={photo.label}>
+              <figure key={photo.label} className="min-w-0">
                 <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
                   <Image
                     src={photo.url!}
                     alt={`${photo.label}: ${result.angleName}`}
                     fill
                     unoptimized
-                    sizes="(min-width: 1024px) 300px, 45vw"
+                    sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 100vw"
                     className="object-contain"
+                    style={{ transform: photo.transform }}
                   />
                 </div>
                 <figcaption className="mt-3 text-base font-medium">
@@ -113,15 +123,16 @@ export function ResultView({ result }: { result: GalleryResult }) {
             ))}
           </div>
         ) : (
-          <div>
+          <div className="min-w-0 max-w-full">
             <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
               <Image
                 src={result.before.url}
                 alt={`Before: ${result.angleName}`}
                 fill
                 unoptimized
-                sizes="600px"
+                sizes="(min-width: 1024px) 600px, 100vw"
                 className="object-contain"
+                style={{ transform: beforeTransform }}
               />
               <div
                 className="absolute inset-0"
@@ -132,9 +143,9 @@ export function ResultView({ result }: { result: GalleryResult }) {
                   alt={`After: ${result.angleName}`}
                   fill
                   unoptimized
-                  sizes="600px"
+                  sizes="(min-width: 1024px) 600px, 100vw"
                   className="object-contain"
-                  style={{ transform }}
+                  style={{ transform: afterTransform }}
                 />
               </div>
               <div
@@ -142,12 +153,16 @@ export function ResultView({ result }: { result: GalleryResult }) {
                 className="pointer-events-none absolute inset-y-0 w-0.5 bg-white shadow"
                 style={{ left: `${split}%` }}
               />
-              <span className="absolute top-3 left-3 rounded bg-card/95 px-2 py-1 text-sm">
-                After
-              </span>
-              <span className="absolute top-3 right-3 rounded bg-card/95 px-2 py-1 text-sm">
-                Before
-              </span>
+              {split > 0 ? (
+                <span className="absolute top-3 left-3 rounded bg-card/95 px-2 py-1 text-sm">
+                  After
+                </span>
+              ) : null}
+              {split < 100 ? (
+                <span className="absolute top-3 right-3 rounded bg-card/95 px-2 py-1 text-sm">
+                  Before
+                </span>
+              ) : null}
             </div>
             <label
               className="mt-4 block text-base font-medium"

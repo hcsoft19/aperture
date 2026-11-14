@@ -96,19 +96,21 @@ export function buildTimeline(input: TimelineInput | null | undefined): Timeline
       continue;
     }
 
-    sortable.push({
-      id: treatment.id,
-      date: treatment.date,
-      kind: "treatment",
-      sessionType: null,
-      entry: {
-        kind: "treatment",
+    if (viewer === "staff" || hasReleasedPhotograph(treatment)) {
+      sortable.push({
         id: treatment.id,
         date: treatment.date,
-        dateLabel: formatChartDate(treatment.date),
-        title: treatment.name.trim(),
-      },
-    });
+        kind: "treatment",
+        sessionType: null,
+        entry: {
+          kind: "treatment",
+          id: treatment.id,
+          date: treatment.date,
+          dateLabel: formatChartDate(treatment.date),
+          title: treatment.name.trim(),
+        },
+      });
+    }
 
     for (const session of treatment.sessions ?? []) {
       if (!isRecordId(session.id) || (session.sessionType !== "baseline" && session.sessionType !== "follow_up")) {
@@ -133,12 +135,16 @@ export function buildTimeline(input: TimelineInput | null | undefined): Timeline
         images.push({
           id: image.id,
           label: image.label.trim(),
-          src: displaySrc(image.src),
+          src: viewer === "patient" ? patientVisibleSrc(image.src) : displaySrc(image.src),
         });
       }
 
       if (viewer === "staff") {
         hiddenImageCount += sessionHidden;
+      }
+
+      if (viewer === "patient" && images.length === 0 && hasUnreleasedPhotograph(session)) {
+        continue;
       }
 
       sortable.push({
@@ -180,6 +186,52 @@ export function buildTimeline(input: TimelineInput | null | undefined): Timeline
     entries: sortable.map((item) => item.entry),
     hiddenImageCount,
   };
+}
+
+export function timelineImageAddress(
+  viewer: TimelineViewer,
+  released: boolean,
+  photoId: string,
+  patientPreviewUrl?: string | null,
+) {
+  if (released !== true || !isRecordId(photoId)) {
+    return null;
+  }
+
+  if (viewer === "staff") {
+    return `/api/clinic-photos/${photoId}`;
+  }
+
+  return patientVisibleSrc(patientPreviewUrl);
+}
+
+function patientVisibleSrc(value: string | null | undefined) {
+  const preview = displaySrc(value);
+  if (!preview || preview.startsWith("/")) {
+    return null;
+  }
+
+  return preview;
+}
+
+function hasReleasedPhotograph(treatment: TimelineTreatmentInput) {
+  return (treatment.sessions ?? []).some((session) =>
+    (session.images ?? []).some((image) => isReleasedPhotograph(image)),
+  );
+}
+
+function hasUnreleasedPhotograph(session: TimelineSessionInput) {
+  return (session.images ?? []).some(
+    (image) => isPhotograph(image) && image.imageReleased !== true,
+  );
+}
+
+function isReleasedPhotograph(image: TimelineImageInput) {
+  return isPhotograph(image) && image.imageReleased === true;
+}
+
+function isPhotograph(image: TimelineImageInput) {
+  return isRecordId(image.id) && image.label.trim().length > 0;
 }
 
 function hiddenPhotographLabel(count: number) {

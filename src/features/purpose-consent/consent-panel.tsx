@@ -20,9 +20,12 @@ export function ConsentPanel({
   summaries: ConsentSummary[];
 }) {
   return (
-    <ul aria-label="Consent purposes" className="flex flex-col gap-3">
+    <ul
+      aria-label="Consent purposes"
+      className="flex min-w-0 max-w-full flex-col gap-3"
+    >
       {summaries.map((summary) => (
-        <li key={summary.purpose}>
+        <li key={summary.purpose} className="min-w-0 max-w-full">
           <PurposeDecision patientId={patientId} summary={summary} />
         </li>
       ))}
@@ -49,7 +52,7 @@ function PurposeDecision({
   return (
     <form
       action={formAction}
-      className="flex flex-col items-start gap-3 rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10"
+      className="flex min-w-0 max-w-full flex-col items-start gap-3 rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10"
     >
       <div>
         <h2 className="text-base font-semibold">{summary.purpose}</h2>
@@ -66,6 +69,7 @@ function PurposeDecision({
         variant={summary.allowed ? "outline" : "default"}
         disabled={pending}
         aria-busy={pending || undefined}
+        className="whitespace-normal h-auto min-h-11 max-w-full w-full text-left shrink"
       >
         {label}
       </Button>

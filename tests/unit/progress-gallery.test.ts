@@ -32,6 +32,7 @@ function release(overrides: Partial<ProgressRelease> = {}): ProgressRelease {
     revokedAt: null,
     createdAt: "2026-11-01T12:00:00.000Z",
     ...overrides,
+    derivativeId: overrides.derivativeId ?? null,
   };
 }
 
@@ -77,7 +78,8 @@ describe("visibleToPatient", () => {
     const derivativeRelease = release({
       id: otherReleaseId,
       comparisonId: null,
-      photoId: derivativeId,
+      photoId: null,
+      derivativeId,
       storagePath: derivativePath,
     });
 
@@ -87,8 +89,9 @@ describe("visibleToPatient", () => {
           release({ storagePath: clinicalPath }),
           derivativeRelease,
           release({ id: "99999999-9999-4999-8999-999999999999", revokedAt: now.toISOString() }),
-          release({ comparisonId: null, photoId: null }),
+          release({ comparisonId: null, photoId: null, derivativeId: null }),
           release({ comparisonId, photoId: derivativeId }),
+          release({ comparisonId: null, photoId: derivativeId, derivativeId: null }),
           null,
           undefined,
           { id: "missing" },

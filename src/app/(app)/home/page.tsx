@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -63,14 +64,16 @@ async function WorkspaceHome() {
         </p>
         <ul className="flex flex-col gap-3">
           {workspace.patientLinks.map((link) => (
-            <li
-              key={link.patientId}
-              className="rounded-xl bg-card p-4 ring-1 ring-foreground/10"
-            >
-              <p className="font-medium">{link.organizationName}</p>
-              <p className="text-sm text-muted-foreground">
-                {link.firstName} {link.lastName}
-              </p>
+            <li key={link.patientId}>
+              <Link
+                href="/treatments"
+                className="flex min-h-11 flex-col justify-center rounded-xl bg-card p-4 ring-1 ring-foreground/10"
+              >
+                <span className="font-medium">{link.organizationName}</span>
+                <span className="text-sm text-muted-foreground">
+                  {link.firstName} {link.lastName}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>

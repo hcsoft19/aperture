@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { unstable_rethrow, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
 import { assessSource } from "@/features/capture/guidance/sample";
 import type { CaptureAssessment } from "@/features/capture/guidance/schema";
 import { useLiveGuidance } from "@/features/capture/guidance/use-live-guidance";
-import { describePhotograph, frameFromVideo, isCaptureMime } from "@/features/capture/media";
+import { describePhotograph, frameFromVideo, isCaptureMime, jpegFromDecodedBitmap } from "@/features/capture/media";
 import { recordCaptureQualityAction, saveCaptureSettingsAction } from "@/features/capture/quality-actions";
 import type { CaptureSessionView } from "@/features/capture/queries";
 import { reviewSession } from "@/features/photo-intelligence/completeness/review";
@@ -181,16 +181,22 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
     if (!file) {
       return;
     }
+
+    let photograph: Blob | null = file;
     if (!isCaptureMime(file.type)) {
+      photograph = file.type === "" ? await jpegFromDecodedBitmap(file) : null;
+    }
+    if (!photograph) {
       setMessage("Use a JPEG, PNG, or WebP photograph.");
       return;
     }
+
     setSource("gallery");
-    setPendingFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    setPendingFile(photograph);
+    setPreviewUrl(URL.createObjectURL(photograph));
     setChecks({});
     setMessage(null);
-    await rememberAssessment(file);
+    await rememberAssessment(photograph);
   }
 
   async function acceptPhotograph() {
@@ -276,9 +282,15 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
     setSaving(true);
     setMessage(null);
     const action = kind === "complete" ? finishCaptureAction : cancelCaptureAction;
-    const result = await action({ sessionId: session.id, missingReason: reason });
-    if (result?.status === "error") {
-      setMessage(result.message);
+    try {
+      const result = await action({ sessionId: session.id, missingReason: reason });
+      if (result?.status === "error") {
+        setMessage(result.message);
+        setSaving(false);
+      }
+    } catch (error) {
+      unstable_rethrow(error);
+      setMessage("The session could not be finished.");
       setSaving(false);
     }
   }

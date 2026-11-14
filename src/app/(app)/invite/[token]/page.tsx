@@ -45,7 +45,7 @@ async function InviteContent({ params }: InvitePageProps) {
         Signed in as {workspace.user.email ?? "this account"}. The invitation works only for the email the clinic addressed.
       </p>
       <AcceptInvite token={token} />
-      <Link href="/register" className="text-sm font-medium text-primary">
+      <Link href="/register" className="inline-flex min-h-11 items-center text-sm font-medium text-primary">
         Need a different account? Create one, then open this link again.
       </Link>
     </section>

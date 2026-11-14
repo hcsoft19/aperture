@@ -43,14 +43,14 @@ async function ReleasedTreatmentContent({ params }: ReleasedTreatmentPageProps) 
   }
 
   const treatment = await getReleasedTreatment(treatmentId);
-  if (!treatment || (treatment.sessions.length === 0 && treatment.comparisons.length === 0)) {
+  if (!treatment || (treatment.sessions.length === 0 && treatment.comparisons.length === 0 && treatment.edits.length === 0)) {
     return <ChartMessage title="Treatment" message="This treatment is not available." />;
   }
 
   return (
     <section className="flex max-w-2xl flex-col gap-6">
       <div>
-        <Link href="/treatments" className="text-sm font-medium text-primary">Your treatments</Link>
+        <Link href="/treatments" className="inline-flex min-h-11 items-center text-sm font-medium text-primary">Your treatments</Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{treatment.name}</h1>
         <p className="mt-2 text-base text-muted-foreground">{treatment.clinicName}</p>
       </div>
@@ -58,11 +58,11 @@ async function ReleasedTreatmentContent({ params }: ReleasedTreatmentPageProps) 
         <div key={session.id} className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">{session.label}</h2>
           <p className="text-sm text-muted-foreground">{formatChartDate(session.date)}</p>
-          <ul className="grid grid-cols-2 gap-3">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {session.photos.map((photo) => (
-              <li key={photo.id}>
+              <li key={photo.id} className="min-w-0 overflow-hidden">
                 {photo.previewUrl ? (
-                  <Image src={photo.previewUrl} alt={photo.label} width={600} height={800} unoptimized className="aspect-[3/4] w-full rounded-lg bg-muted object-contain" />
+                  <Image src={photo.previewUrl} alt={photo.label} width={600} height={800} unoptimized className="aspect-[3/4] w-full max-w-full rounded-lg bg-muted object-contain" />
                 ) : null}
                 <p className="mt-2 text-sm">{photo.label}</p>
               </li>
@@ -70,6 +70,21 @@ async function ReleasedTreatmentContent({ params }: ReleasedTreatmentPageProps) 
           </ul>
         </div>
       ))}
+      {treatment.edits.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Edited photographs</h2>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {treatment.edits.map((edit) => (
+              <li key={edit.id} className="min-w-0 overflow-hidden">
+                {edit.previewUrl ? (
+                  <Image src={edit.previewUrl} alt={edit.label} width={600} height={800} unoptimized className="aspect-[3/4] w-full max-w-full rounded-lg bg-muted object-contain" />
+                ) : null}
+                <p className="mt-2 text-sm">{edit.label}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       {treatment.comparisons.length > 0 ? (
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Comparisons</h2>

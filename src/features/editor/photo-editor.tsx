@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -282,16 +282,19 @@ export function PhotoEditor({
             window.addEventListener("pointerup", up);
           }}
         >
-          {/* The photograph is loaded into a bitmap for export. This element is the editing surface. */}
-          {/* The editing surface uses the signed original. next/image would resize it and hide the element used for pointer mapping. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            ref={imageRef}
-            src={signedUrl}
-            alt={angleName}
-            className={`mx-auto max-h-[70vh] w-full object-contain ${showBackground ? "hidden" : ""}`}
-            draggable={false}
-          />
+          <div className="relative mx-auto w-full">
+            {/* The photograph is loaded into a bitmap for export. This element is the editing surface. */}
+            {/* The editing surface uses the signed original. next/image would resize it and hide the element used for pointer mapping. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imageRef}
+              src={signedUrl}
+              alt={angleName}
+              className={`mx-auto block max-h-[70vh] w-full object-contain ${showBackground ? "hidden" : ""}`}
+              draggable={false}
+            />
+            {showBackground ? null : <CropFrame crop={display.crop} imageRef={imageRef} />}
+          </div>
           <canvas
             ref={previewCanvasRef}
             aria-label={`${angleName} with the selected background`}
@@ -366,8 +369,8 @@ export function PhotoEditor({
               {selected ? (
                 <fieldset className="grid gap-3 sm:grid-cols-2">
                   <legend className="font-medium">Selected privacy bar</legend>
-                  <SizeControl label="Width" value={selected.width} min={0.05} max={1} onChange={(width) => changeMask(selected.id, (mask) => ({ ...mask, width }))} />
-                  <SizeControl label="Height" value={selected.height} min={0.02} max={1} onChange={(height) => changeMask(selected.id, (mask) => ({ ...mask, height }))} />
+                  <SizeControl label="Width" value={selected.width} min={0.05} max={1} step={0.01} onChange={(width) => changeMask(selected.id, (mask) => ({ ...mask, width }))} />
+                  <SizeControl label="Height" value={selected.height} min={0.02} max={1} step={0.01} onChange={(height) => changeMask(selected.id, (mask) => ({ ...mask, height }))} />
                   <SizeControl label="Bar rotation" value={selected.rotation} min={-180} max={180} onChange={(rotation) => changeMask(selected.id, (mask) => ({ ...mask, rotation }))} />
                 </fieldset>
               ) : <p className="text-sm text-muted-foreground">Add a bar, then drag it. These bars hide pixels only in an export.</p>}
@@ -486,7 +489,10 @@ export function PhotoEditor({
             onPointerDown={() => setShowOriginal(true)}
             onPointerUp={() => setShowOriginal(false)}
             onPointerLeave={() => setShowOriginal(false)}
-            onClick={() => setShowOriginal((current) => !current)}
+            onClick={(event) => {
+              if (event.detail !== 0) return;
+              setShowOriginal((current) => !current);
+            }}
           >
             {showOriginal ? "Showing original" : "Show original"}
           </button>
@@ -552,6 +558,81 @@ function coverageFor(bitmap: ImageBitmap) {
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   const image = context.getImageData(0, 0, canvas.width, canvas.height);
   return estimateBackground({ width: canvas.width, height: canvas.height, rgba: image.data });
+}
+
+function cropCoversPhotograph(crop: EditDocument["crop"]) {
+  return crop.x <= 0.001 && crop.y <= 0.001 && crop.width >= 0.999 && crop.height >= 0.999;
+}
+
+function CropFrame({
+  crop,
+  imageRef,
+}: {
+  crop: EditDocument["crop"];
+  imageRef: RefObject<HTMLImageElement | null>;
+}) {
+  const [painted, setPainted] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const image = imageRef.current;
+    if (!image) return;
+
+    const measure = () => {
+      const width = image.clientWidth;
+      const height = image.clientHeight;
+      const naturalWidth = image.naturalWidth;
+      const naturalHeight = image.naturalHeight;
+      if (width === 0 || height === 0 || naturalWidth === 0 || naturalHeight === 0) {
+        setPainted(null);
+        return;
+      }
+      const scale = Math.min(width / naturalWidth, height / naturalHeight);
+      const paintedWidth = naturalWidth * scale;
+      const paintedHeight = naturalHeight * scale;
+      setPainted({
+        left: (width - paintedWidth) / 2,
+        top: (height - paintedHeight) / 2,
+        width: paintedWidth,
+        height: paintedHeight,
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(image);
+    image.addEventListener("load", measure);
+    return () => {
+      observer.disconnect();
+      image.removeEventListener("load", measure);
+    };
+  }, [imageRef]);
+
+  if (!painted || cropCoversPhotograph(crop)) return null;
+
+  const frame = {
+    left: painted.left + crop.x * painted.width,
+    top: painted.top + crop.y * painted.height,
+    width: Math.max(0, crop.width * painted.width),
+    height: Math.max(0, crop.height * painted.height),
+  };
+  const right = painted.left + painted.width;
+  const bottom = painted.top + painted.height;
+  const dim = "absolute bg-black/45";
+
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      <div className={dim} style={{ left: painted.left, top: painted.top, width: painted.width, height: Math.max(0, frame.top - painted.top) }} />
+      <div className={dim} style={{ left: painted.left, top: frame.top + frame.height, width: painted.width, height: Math.max(0, bottom - (frame.top + frame.height)) }} />
+      <div className={dim} style={{ left: painted.left, top: frame.top, width: Math.max(0, frame.left - painted.left), height: frame.height }} />
+      <div className={dim} style={{ left: frame.left + frame.width, top: frame.top, width: Math.max(0, right - (frame.left + frame.width)), height: frame.height }} />
+      <div
+        role="img"
+        aria-label="Crop frame"
+        className="absolute border-2 border-white ring-2 ring-primary"
+        style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height }}
+      />
+    </div>
+  );
 }
 
 function SizeControl({

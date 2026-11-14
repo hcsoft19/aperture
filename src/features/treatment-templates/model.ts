@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isUuid } from "@/lib/ids";
+
 export const PROTOCOL_CODES = [
   "FACE_STANDARD",
   "DENTAL_STANDARD",
@@ -111,6 +113,61 @@ export function templatesForOrganization<T extends { organizationId: string }>(
   organizationId: string,
 ): T[] {
   return templates.filter((template) => template.organizationId === organizationId);
+}
+
+export function templateQueryId(value: string | string[] | undefined | null) {
+  return typeof value === "string" && isUuid(value) ? value : null;
+}
+
+export function choosePatientForTemplateHref(templateId: string) {
+  return `/patients?template=${encodeURIComponent(templateId)}`;
+}
+
+export function newTreatmentFromTemplateHref(patientId: string, templateId: string) {
+  return `/patients/${encodeURIComponent(patientId)}/treatments/new?template=${encodeURIComponent(templateId)}`;
+}
+
+export function treatmentFormValuesFromDraft(draft: TreatmentDraft) {
+  return {
+    name: draft.name,
+    category: draft.category,
+    bodyArea: draft.bodyArea,
+    description: "",
+    startDate: "",
+    procedureType: "",
+    productName: "",
+    protocolCode: protocolCodeOrDefault(draft.protocolCode),
+    followUpDays: draft.followUpDays,
+    status: draft.status,
+  };
+}
+
+export function parseFollowUpDaysInput(
+  value: string,
+): { ok: true; days: number | null } | { ok: false; message: string } {
+  const trimmed = value.trim();
+  if (trimmed === "") {
+    return { ok: true, days: null };
+  }
+
+  if (!/^\d+$/.test(trimmed)) {
+    return { ok: false, message: "Enter a whole number of days." };
+  }
+
+  const days = Number(trimmed);
+  if (days < 1 || days > 3650) {
+    return { ok: false, message: "Enter between 1 and 3650 days." };
+  }
+
+  return { ok: true, days };
+}
+
+function protocolCodeOrDefault(code: string): ProtocolCode {
+  if ((PROTOCOL_CODES as readonly string[]).includes(code)) {
+    return code as ProtocolCode;
+  }
+
+  return "FACE_STANDARD";
 }
 
 /**

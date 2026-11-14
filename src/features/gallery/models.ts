@@ -111,6 +111,10 @@ export type GalleryResult = {
     rotation: number;
     scale: number;
     aligned: boolean;
+    layout: "side_by_side" | "slider" | "stack";
+    syncFraming: boolean;
+    beforeZoom: number;
+    afterZoom: number;
   };
 };
 export type GalleryPage = {
@@ -131,18 +135,32 @@ export const emptyGalleryFacets: GalleryFacets = {
   bodyAreas: [],
 };
 export const GALLERY_PAGE_SIZE = 12;
+const savedZoom = z.number().finite().min(1).max(3).catch(1);
+const alignmentFallback = {
+  x: 0,
+  y: 0,
+  rotation: 0,
+  scale: 1,
+  aligned: false,
+  layout: "side_by_side" as const,
+  syncFraming: false,
+  beforeZoom: 1,
+  afterZoom: 1,
+};
 const alignmentSchema = z.object({
   x: z.number().finite().min(-50).max(50),
   y: z.number().finite().min(-50).max(50),
   rotation: z.number().finite().min(-30).max(30),
   scale: z.number().finite().min(0.5).max(2),
   aligned: z.boolean(),
+  layout: z.enum(["side_by_side", "slider", "stack"]).catch("side_by_side"),
+  syncFraming: z.boolean().catch(false),
+  beforeZoom: savedZoom,
+  afterZoom: savedZoom,
 });
 export function galleryAlignment(value: unknown): GalleryResult["alignment"] {
   const parsed = alignmentSchema.safeParse(value);
-  return parsed.success
-    ? parsed.data
-    : { x: 0, y: 0, rotation: 0, scale: 1, aligned: false };
+  return parsed.success ? parsed.data : alignmentFallback;
 }
 export function galleryDate(value: string) {
   const date = new Date(value);
