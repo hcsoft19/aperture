@@ -31,6 +31,7 @@ describe("navigation", () => {
       "Home",
       "Patients",
       "Capture",
+      "Clinic",
       "Profile",
     ]);
   });

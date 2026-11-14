@@ -1,9 +1,18 @@
-import { Camera, ClipboardList, House, UserRound, Users, type LucideIcon } from "lucide-react";
+import {
+  Building2,
+  Camera,
+  ClipboardList,
+  House,
+  UserRound,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { WorkspaceKind } from "@/features/access/kind";
 
 export type NavItem = {
-  href: "/home" | "/patients" | "/capture" | "/profile" | "/treatments";
+  href:
+    "/home" | "/patients" | "/capture" | "/profile" | "/treatments" | "/clinic";
   label: string;
   icon: LucideIcon;
 };
@@ -11,12 +20,21 @@ export type NavItem = {
 const home = { href: "/home", label: "Home", icon: House } as const;
 const patients = { href: "/patients", label: "Patients", icon: Users } as const;
 const capture = { href: "/capture", label: "Capture", icon: Camera } as const;
-const treatments = { href: "/treatments", label: "Treatments", icon: ClipboardList } as const;
-const profile = { href: "/profile", label: "Profile", icon: UserRound } as const;
+const treatments = {
+  href: "/treatments",
+  label: "Treatments",
+  icon: ClipboardList,
+} as const;
+const clinic = { href: "/clinic", label: "Clinic", icon: Building2 } as const;
+const profile = {
+  href: "/profile",
+  label: "Profile",
+  icon: UserRound,
+} as const;
 
 export function navigationFor(kind: WorkspaceKind): NavItem[] {
   if (kind === "staff") {
-    return [home, patients, capture, profile];
+    return [home, patients, capture, clinic, profile];
   }
 
   if (kind === "patient") {

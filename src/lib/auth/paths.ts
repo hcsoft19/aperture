@@ -3,9 +3,11 @@ const PUBLIC_EXACT_PATHS = new Set([
   "/login",
   "/register",
   "/forgot-password",
+  "/robots.txt",
+  "/sitemap.xml",
 ]);
 
-const PUBLIC_PREFIXES = ["/auth/"];
+const PUBLIC_PREFIXES = ["/auth/", "/clinics/", "/api/clinic/branding/"];
 
 const AUTH_ENTRY_PATHS = new Set(["/login", "/register", "/forgot-password"]);
 
