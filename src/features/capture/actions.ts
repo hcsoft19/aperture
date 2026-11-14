@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getWorkspace } from "@/features/access/workspace";
+import { photographFitsQuota } from "@/features/production-readiness/storage";
 import {
   CONSENT_PURPOSE,
   getCaptureProtocol,
@@ -228,6 +229,15 @@ export async function preparePhotoAction(
   await removePending(supabase, parsed.data.sessionId, parsed.data.angleId);
 
   const photoId = crypto.randomUUID();
+  const quota = await photographFitsQuota({
+    organizationId: workspace.activeMembership.organizationId,
+    photoId,
+    fileSizeBytes: parsed.data.fileSizeBytes,
+  });
+  if (!quota.ok) {
+    return { status: "error", message: quota.message };
+  }
+
   const storagePath = clinicalStoragePath({
     organizationId: workspace.activeMembership.organizationId,
     patientId: context.patientId,

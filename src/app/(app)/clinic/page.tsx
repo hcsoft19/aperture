@@ -79,6 +79,7 @@ async function Content() {
         <a href="/clinic/reminders" className="inline-flex min-h-11 items-center rounded-lg px-4 text-base font-medium text-primary hover:bg-muted">Reminders</a>
         <a href="/clinic/reports" className="inline-flex min-h-11 items-center rounded-lg px-4 text-base font-medium text-primary hover:bg-muted">Reports</a>
         <a href="/clinic/team" className="inline-flex min-h-11 items-center rounded-lg px-4 text-base font-medium text-primary hover:bg-muted">Team</a>
+        <a href="/clinic/usage" className="inline-flex min-h-11 items-center rounded-lg px-4 text-base font-medium text-primary hover:bg-muted">Storage</a>
       </nav>
       <section id="profile" className="scroll-mt-6">
         <ProfileEditor

@@ -8,3 +8,5 @@ alwaysApply: true
 Project communication for Aperture happens in Slack workspace `T06FNJRBDDE`, channel `C06FCEX3DC1`. Slack names that channel `software-development-software-management`. The user refers to it as `#aperture`.
 
 Subscribe this conversation to that channel and treat new messages there as requests for this project. Keep clinical and secret details out of Slack.
+
+When an implementation starts, and when it finishes, post a short Aperture project status update so this channel is notified. Also post directly in Slack when a send action is available. Say what started or finished. Do not include patient names, photographs, clinic secrets, or keys.
