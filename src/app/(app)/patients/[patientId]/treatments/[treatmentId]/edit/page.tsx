@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { getAllCatalogOptions } from "@/features/catalog";
+import { getAllCatalogOptions } from "@/features/catalog/queries";
 import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { getPatient, getTreatment } from "@/features/patients/queries";
