@@ -16,6 +16,9 @@ describe("clinic public profile", () => {
     };
     expect(clinicProfileSchema.safeParse(values).success).toBe(true);
     expect(values.booking_mode).toBe("none");
+    expect(
+      clinicProfileSchema.safeParse({ ...values, booking_label: "" }).success,
+    ).toBe(true);
   });
   it("requires a valid destination only when booking is enabled", () => {
     const values = {
