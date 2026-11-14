@@ -19,6 +19,9 @@ import { useLiveGuidance } from "@/features/capture/guidance/use-live-guidance";
 import { describePhotograph, frameFromVideo, isCaptureMime } from "@/features/capture/media";
 import { recordCaptureQualityAction, saveCaptureSettingsAction } from "@/features/capture/quality-actions";
 import type { CaptureSessionView } from "@/features/capture/queries";
+import { reviewSession } from "@/features/photo-intelligence/completeness/review";
+import { SessionReview } from "@/features/photo-intelligence/completeness/session-review";
+import { SetupSuggestions } from "@/features/photo-intelligence/setup-suggestions";
 import { createClient } from "@/lib/supabase/client";
 
 const CHECKS = [
@@ -289,6 +292,12 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
 
   return (
     <div className="flex max-w-xl flex-col gap-5">
+      <SessionReview
+        review={reviewSession(
+          session.protocol.angles.map((angle) => ({ id: angle.id, name: angle.name })),
+          session.photos.map((photo) => ({ id: photo.id, angleId: photo.angleId })),
+        )}
+      />
       <div>
         <p className="text-sm text-muted-foreground">
           {session.patientName} · {session.treatmentName}
@@ -480,8 +489,13 @@ function SavedGuidance({ session }: { session: CaptureSessionView }) {
         {noted.map((photo) => {
           const angle = session.protocol.angles.find((item) => item.id === photo.angleId);
           return (
-            <li key={photo.id} className="text-base">
-              {angle?.name ?? "Photograph"}: {photo.quality?.instruction}
+            <li key={photo.id} className="flex flex-col gap-2 text-base">
+              <span>
+                {angle?.name ?? "Photograph"}: {photo.quality?.instruction}
+              </span>
+              {photo.quality ? (
+                <SetupSuggestions status={photo.quality.status} warnings={photo.quality.warnings} />
+              ) : null}
             </li>
           );
         })}

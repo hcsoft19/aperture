@@ -23,6 +23,8 @@ Phases 1 through 6 are implemented in this repository:
 7. Public landing page and clinic home. The landing page explains the workflow and shows an interactive side-by-side, baseline, and follow-up preview. The clinic home offers the patient library, a new capture, and a new chart.
 8. Non-destructive photograph editor. Staff open `/patients/{patientId}/photos/{photoId}/edit` from a session, a capture review, or a clinic result. Crop, zoom, pan, rotation, black or white privacy bars, and canvas padding are saved as a new `photo_edit_revisions` row. The original file is unchanged. Flattened JPEG and PNG exports go to the private `photo-derivatives` bucket. Comparisons can use a side-by-side, slider, or stacked layout, with optional synchronized zoom. Patients still cannot read revision JSON.
 9. Smart capture guidance. During a draft session the camera can show one framing instruction from on-device face detection plus blur, exposure, and steadiness. A poor frame needs a written reason before it is kept. Scores are stored in `capture_quality_assessments` and do not include landmarks or a copy of the photograph. `NEXT_PUBLIC_SMART_CAPTURE=off` leaves the original checklist. Patients cannot read the scores.
+10. Clinic operations. Templates, a patient timeline, a progress release, purpose-specific consent, follow-up reminders, a work queue, a report disclosure, and a team list. Routes are under `/clinic` and the patient chart. Patients still cannot read another clinic.
+11. Photography suggestions. Framing, same-angle alignment, setup tips, session completeness, and an opt-in background estimate are suggestions or checks. The professional accepts or rejects them. Originals stay immutable. Setup wording may use OpenRouter free models and falls back to fixed sentences. Photographs are not sent to a language model. `NEXT_PUBLIC_SEGMENTATION=on` is required before the background estimate is offered. Accepted and rejected rows go in `photo_suggestions`. Details are in `MVP5_IMPLEMENTATION_PLAN.md`.
 
 ## Hosted prototype
 
@@ -37,9 +39,9 @@ Phases 1 through 6 are implemented in this repository:
 
 `https://aperture.vercel.app` belongs to a different product. Do not set `NEXT_PUBLIC_SITE_URL` to it.
 
-The hosted database has the five migrations and `supabase/seed.sql`. The demo accounts in the seed section below can sign in on the public URL. That was an explicit choice for this prototype. Do not add real patients, and do not copy that seed onto a project that will hold real records.
+The hosted database has the migrations in `supabase/migrations` and `supabase/seed.sql`. The demo accounts in the seed section below can sign in on the public URL. That was an explicit choice for this prototype. Do not add real patients, and do not copy that seed onto a project that will hold real records.
 
-Vercel environment variables are `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SITE_URL`. The site URL is the first app host above. The service-role key is not stored there.
+Vercel environment variables are `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SITE_URL`. Optional server-only values are `OPENROUTER_API_KEY` and `OPENROUTER_FALLBACK_MODEL`. The site URL is the first app host above. The service-role key is not stored there.
 
 Supabase Auth site URL is that same host. The allow list includes `/auth/callback` and `/auth/callback?next=/reset-password` for both Vercel hosts and for `localhost:3000` and `127.0.0.1:3000`.
 
@@ -156,8 +158,10 @@ Anonymous visitors to `/invite/{token}` are sent to `/login?next=/invite/{token}
 Staff: Home, Patients, Capture, Profile. Patient: Home, Treatments, Profile.
 
 - `/capture` and `/capture/[sessionId]` for guided photography.
-- `/patients/[patientId]` for the chart and invitation.
+- `/patients/[patientId]` for the chart and invitation, with timeline, progress, and consent.
+- `/patients/[patientId]/photos/[photoId]/edit` for the non-destructive editor.
 - `/patients/[patientId]/treatments/[treatmentId]` for release, comparison, and sharing.
+- `/clinic/queue`, `/clinic/templates`, `/clinic/reminders`, `/clinic/reports`, and `/clinic/team`.
 - `/treatments` and `/treatments/[treatmentId]` for the patient timeline.
 - `/invite/[token]` to accept an invitation.
 
@@ -172,6 +176,8 @@ Apply new SQL with `supabase migration new <name>` and then edit that file. Do n
 - `supabase/migrations/20261113221359_patient_portal.sql`
 - `supabase/migrations/20261114123328_photo_edit_revisions.sql`
 - `supabase/migrations/20261114131207_capture_quality_assessments.sql`
+- `supabase/migrations/20261114133702_clinic_operations.sql`
+- `supabase/migrations/20261114150000_photo_suggestions.sql`
 
 After a schema change, regenerate `src/types/database.ts` with `npx supabase gen types typescript --local --schema public`.
 

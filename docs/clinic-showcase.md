@@ -16,7 +16,7 @@ The application derives the clinic from verified membership, never a submitted o
 
 Public images are separate, resized WebP copies with metadata removed. Private originals are unchanged. Both profiles and results must be published for anonymous image access. Media routes use `private, no-store`; offline pages do not expose new media access. Marketing permission withdrawal also deletes the public web copies, invalidating existing storage URLs to those objects. Previously downloaded images and third-party search caches cannot be recalled. Ordinary temporary unpublishing retains the web files for republication; previously issued Storage signed URLs may remain valid until their expiry.
 
-Profile saves and publication changes are audited, and recent activity appears in Clinic settings. Roles, private gallery access, and patient sharing continue to work separately.
+Profile saves and publication changes are audited, and recent activity appears in Clinic settings. Roles, private gallery access, and patient sharing continue to work separately. Photography suggestions from MVP 5 are not public marketing images, and they do not change an original or a published result.
 
 ## SEO
 

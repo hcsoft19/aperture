@@ -33,9 +33,11 @@ export type CaptureTarget = {
 export type CapturePhotoQuality = {
   status: "good" | "warning" | "poor" | "unavailable";
   instruction: string;
+  warnings: string[];
   faceCenterX: number | null;
   faceCenterY: number | null;
   faceWidth: number | null;
+  faceHeight: number | null;
 };
 
 export type CapturePhoto = {
@@ -353,7 +355,7 @@ async function loadCaptureQuality(
     photoIds.length
       ? supabase
           .from("capture_quality_assessments")
-          .select("photo_id, status, instruction, metrics")
+          .select("photo_id, status, instruction, warnings, metrics")
           .in("photo_id", photoIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
@@ -370,9 +372,11 @@ async function loadCaptureQuality(
     byPhoto.set(row.photo_id, {
       status: row.status,
       instruction: row.instruction,
+      warnings: Array.isArray(row.warnings) ? row.warnings.filter((item) => typeof item === "string") : [],
       faceCenterX: typeof record.faceCenterX === "number" ? record.faceCenterX : null,
       faceCenterY: typeof record.faceCenterY === "number" ? record.faceCenterY : null,
       faceWidth: typeof record.faceWidth === "number" ? record.faceWidth : null,
+      faceHeight: typeof record.faceHeight === "number" ? record.faceHeight : null,
     });
   }
   return {

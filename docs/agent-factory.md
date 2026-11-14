@@ -1,6 +1,21 @@
 # Aperture agent factory
 
-Lanes run at the same time. Each lane owns the paths below and does not edit another lane, migrations, or `src/types/database.ts`. The integrator adds one migration, mounts the pages, runs the full test suite, then pushes `development` and merges it into `production` and `main`.
+Lanes run at the same time. Each lane owns the paths below and does not edit another lane, migrations, `src/types/database.ts`, or the markdown guides. The integrator adds one migration, mounts the pages, runs the full test suite, then pushes `development` and merges it into `production` and `main`.
+
+## MVP 5 — photography intelligence
+
+| Lane | Owns |
+| --- | --- |
+| Framing suggestions | `src/features/photo-intelligence/framing/`, `tests/unit/framing-suggestions.test.ts` |
+| Assisted alignment | `src/features/photo-intelligence/alignment/`, `tests/unit/assisted-alignment.test.ts` |
+| Quality recommendations | `src/features/photo-intelligence/recommendations/`, `src/lib/openrouter/`, `tests/unit/quality-recommendations.test.ts`, `tests/unit/openrouter-fallback.test.ts` |
+| Session completeness | `src/features/photo-intelligence/completeness/`, `tests/unit/session-completeness.test.ts` |
+| Segmentation prototype | `src/features/photo-intelligence/segmentation/`, `tests/unit/segmentation-prototype.test.ts` |
+| Processing jobs | `src/features/photo-intelligence/jobs/`, `tests/unit/processing-jobs.test.ts` |
+
+Suggestions are metadata. A professional accepts or rejects them. Original photographs stay immutable. Language tips use OpenRouter free models and fall back to the local sentences. Photographs are not sent to a model.
+
+## MVP 4 — clinic operations
 
 | Lane | Owns |
 | --- | --- |
@@ -12,5 +27,3 @@ Lanes run at the same time. Each lane owns the paths below and does not edit ano
 | Work queue | `src/features/work-queue/`, `/clinic/queue` |
 | Clinic reports | `src/features/clinic-reports/`, `/clinic/reports` |
 | Collaboration | `src/features/collaboration/`, `/clinic/team` |
-
-After the lanes finish, one integrator wires the shared tables, checks the suite, and a separate pass confirms the deployed Vercel URL.

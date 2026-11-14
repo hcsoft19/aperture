@@ -114,6 +114,8 @@ Still open: a full RLS test suite, Playwright for sign-in, patient isolation, ca
 10. Staff membership chooses the professional shell. A linked patient with no staff membership sees the patient shell. A new account sees clinic setup.
 11. Playwright is deferred until Phase 7, when there is a workflow to drive.
 12. Vercel Hobby and Supabase Free are for this prototype only, and not for real clinical data.
+13. Language-model wording uses OpenRouter free models first, then `OPENROUTER_FALLBACK_MODEL`, then a local sentence. Photographs stay on the device.
+14. MVP 5 suggestions are documented in `MVP5_IMPLEMENTATION_PLAN.md`. They do not identify a person or replace an original.
 
 ## Configuration still required
 
