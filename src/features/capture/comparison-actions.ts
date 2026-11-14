@@ -13,6 +13,10 @@ const comparisonSchema = z.object({
   rotation: z.number().finite().min(-30).max(30),
   scale: z.number().finite().min(0.5).max(2),
   aligned: z.boolean(),
+  layout: z.enum(["side_by_side", "slider", "stack"]).default("side_by_side"),
+  syncFraming: z.boolean().default(false),
+  beforeZoom: z.number().finite().min(1).max(3).default(1),
+  afterZoom: z.number().finite().min(1).max(3).default(1),
 });
 
 export async function saveComparisonAction(
@@ -61,12 +65,24 @@ export async function saveComparisonAction(
     };
   }
 
+  const { data: revisions } = await supabase
+    .from("photo_edit_revisions")
+    .select("id, photo_id, revision_number")
+    .in("photo_id", [before.id, after.id])
+    .order("revision_number", { ascending: false });
+  const revisionFor = (photoId: string) => revisions?.find((revision) => revision.photo_id === photoId)?.id ?? null;
   const alignment = {
     x: parsed.data.x,
     y: parsed.data.y,
     rotation: parsed.data.rotation,
     scale: parsed.data.scale,
     aligned: parsed.data.aligned,
+    layout: parsed.data.layout,
+    syncFraming: parsed.data.syncFraming,
+    beforeZoom: parsed.data.beforeZoom,
+    afterZoom: parsed.data.syncFraming ? parsed.data.beforeZoom : parsed.data.afterZoom,
+    beforeRevisionId: revisionFor(before.id),
+    afterRevisionId: revisionFor(after.id),
   };
   const { data: existing } = await supabase
     .from("comparisons")

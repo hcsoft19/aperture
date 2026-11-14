@@ -21,6 +21,7 @@ Phases 1 through 6 are implemented in this repository:
 5. Comparison of one baseline photograph and one follow-up of the same angle. Side-by-side view, a keyboard slider, and alignment metadata only. No smoothing, reshaping, or generated pixels.
 6. Patient portal. A clinic can invite a patient, release a completed session, and share or revoke a comparison. The patient sees only that released material.
 7. Public landing page and clinic home. The landing page explains the workflow and shows an interactive side-by-side, baseline, and follow-up preview. The clinic home offers the patient library, a new capture, and a new chart.
+8. Non-destructive photograph editor. Staff open `/patients/{patientId}/photos/{photoId}/edit` from a session, a capture review, or a clinic result. Crop, zoom, pan, rotation, black or white privacy bars, and canvas padding are saved as a new `photo_edit_revisions` row. The original file is unchanged. Flattened JPEG and PNG exports go to the private `photo-derivatives` bucket. Comparisons can use a side-by-side, slider, or stacked layout, with optional synchronized zoom. Patients still cannot read revision JSON.
 
 ## Hosted prototype
 
@@ -168,6 +169,7 @@ Apply new SQL with `supabase migration new <name>` and then edit that file. Do n
 - `supabase/migrations/20261113212102_capture_session_visibility.sql`
 - `supabase/migrations/20261113220000_restrict_patient_sessions.sql`
 - `supabase/migrations/20261113221359_patient_portal.sql`
+- `supabase/migrations/20261114123328_photo_edit_revisions.sql`
 
 After a schema change, regenerate `src/types/database.ts` with `npx supabase gen types typescript --local --schema public`.
 

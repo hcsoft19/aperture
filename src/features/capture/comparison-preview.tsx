@@ -23,6 +23,10 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
       : { x: 0, y: 0, rotation: 0, scale: 1, aligned: false };
   }
   const [alignment, setAlignment] = useState(() => savedAlignment(angles[0]?.id ?? "", referenceId));
+  const [layout, setLayout] = useState<"side_by_side" | "slider" | "stack">("side_by_side");
+  const [syncFraming, setSyncFraming] = useState(false);
+  const [beforeZoom, setBeforeZoom] = useState(1);
+  const [afterZoom, setAfterZoom] = useState(1);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const before = session.references.find((photo) => photo.id === referenceId && photo.angleId === angleId)?.previewUrl;
@@ -42,23 +46,41 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
       <select id="comparison-baseline" value={referenceId} onChange={(event) => { setReferenceId(event.target.value); setAlignment(savedAlignment(angleId, event.target.value)); setMessage(""); }} className="mt-2 min-h-11 w-full rounded-md border bg-background px-3">
         {session.references.filter((photo) => photo.angleId === angleId && photo.previewUrl).map((photo, index) => <option key={photo.id} value={photo.id}>{photo.capturedAt ? `${photo.capturedAt.slice(0, 10)} · ${photo.capturedAt.slice(11, 16)} UTC` : `Baseline ${index + 1}`}</option>)}
       </select>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        {[{ url: before, label: "Baseline" }, { url: after, label: "Follow-up" }].map((photo) => (
-          <figure key={photo.label}>
-            <Image src={photo.url} alt={`${photo.label} photograph`} width={600} height={800} unoptimized className="aspect-[3/4] w-full rounded-lg object-contain bg-muted" />
-            <figcaption className="mt-2 text-sm font-medium">{photo.label}</figcaption>
-          </figure>
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Comparison layout">
+        {([["side_by_side", "Side by side"], ["slider", "Slider"], ["stack", "Stacked"]] as const).map(([value, label]) => (
+          <button key={value} type="button" aria-pressed={layout === value} className="min-h-11 rounded-md border px-3" onClick={() => setLayout(value)}>{label}</button>
         ))}
       </div>
-      <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-lg bg-muted">
-        <Image src={before} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" />
-        <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
-          <Image src={after} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" style={{ transform: `translate(${alignment.x}%, ${alignment.y}%) rotate(${alignment.rotation}deg) scale(${alignment.scale})` }} />
+      {layout !== "slider" ? (
+        <div className={layout === "stack" ? "mt-4 grid gap-2" : "mt-4 grid grid-cols-2 gap-2"}>
+          {[{ url: before, label: "Baseline", zoom: beforeZoom }, { url: after, label: "Follow-up", zoom: afterZoom }].map((photo) => (
+            <figure key={photo.label}>
+              <Image src={photo.url} alt={`${photo.label} photograph`} width={600} height={800} unoptimized className="aspect-[3/4] w-full rounded-lg object-contain bg-muted" style={{ transform: photo.label === "Follow-up" ? `translate(${alignment.x}%, ${alignment.y}%) rotate(${alignment.rotation}deg) scale(${alignment.scale * photo.zoom})` : `scale(${photo.zoom})` }} />
+              <figcaption className="mt-2 text-sm font-medium">{photo.label}</figcaption>
+            </figure>
+          ))}
         </div>
-      </div>
-      <label htmlFor="comparison-position" className="mt-4 block font-medium">Comparison: follow-up on the left, baseline on the right</label>
-      <input id="comparison-position" type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} className="mt-2 min-h-11 w-full accent-primary" />
-      <p className="text-sm text-muted-foreground">Use the slider or arrow keys to change the split.</p>
+      ) : null}
+      {layout === "slider" ? (
+        <>
+          <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-lg bg-muted">
+            <Image src={before} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" />
+            <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
+              <Image src={after} alt="" fill unoptimized sizes="(min-width: 768px) 672px, 100vw" className="object-contain" style={{ transform: `translate(${alignment.x}%, ${alignment.y}%) rotate(${alignment.rotation}deg) scale(${alignment.scale * afterZoom})` }} />
+            </div>
+          </div>
+          <label htmlFor="comparison-position" className="mt-4 block font-medium">Comparison: follow-up on the left, baseline on the right</label>
+          <input id="comparison-position" type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} className="mt-2 min-h-11 w-full accent-primary" />
+          <p className="text-sm text-muted-foreground">Use the slider or arrow keys to change the split.</p>
+        </>
+      ) : null}
+      <label className="mt-4 flex min-h-11 items-center gap-3 font-medium"><input type="checkbox" checked={syncFraming} onChange={(event) => { setSyncFraming(event.target.checked); if (event.target.checked) setAfterZoom(beforeZoom); }} /> Synchronize framing</label>
+      <label className="mt-2 block text-sm font-medium">Baseline zoom: {beforeZoom.toFixed(2)}
+        <input type="range" min={1} max={3} step={0.01} value={beforeZoom} onChange={(event) => { const zoom = Number(event.target.value); setBeforeZoom(zoom); if (syncFraming) setAfterZoom(zoom); }} className="min-h-11 w-full" />
+      </label>
+      <label className="mt-2 block text-sm font-medium">Follow-up zoom: {afterZoom.toFixed(2)}
+        <input type="range" min={1} max={3} step={0.01} value={afterZoom} onChange={(event) => { const zoom = Number(event.target.value); setAfterZoom(zoom); if (syncFraming) setBeforeZoom(zoom); }} className="min-h-11 w-full" />
+      </label>
       <fieldset className="mt-5 grid gap-3 sm:grid-cols-2">
         <legend className="font-medium">Align follow-up</legend>
         {([
@@ -83,7 +105,7 @@ export function ComparisonPreview({ session }: { session: CaptureSessionView }) 
         if (!beforePhoto || !afterPhoto) return;
         setSaving(true);
         try {
-          const result = await saveComparisonAction({ beforeId: beforePhoto.id, afterId: afterPhoto.id, x: alignment.x, y: alignment.y, rotation: alignment.rotation, scale: alignment.scale, aligned: alignment.aligned });
+          const result = await saveComparisonAction({ beforeId: beforePhoto.id, afterId: afterPhoto.id, x: alignment.x, y: alignment.y, rotation: alignment.rotation, scale: alignment.scale, aligned: alignment.aligned, layout, syncFraming, beforeZoom, afterZoom });
           setMessage(result.message);
           if (result.ok) router.refresh();
         } catch {

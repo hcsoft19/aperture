@@ -8,7 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { galleryDate, type GalleryResult } from "./models";
 
 export function ResultView({ result }: { result: GalleryResult }) {
-  const [mode, setMode] = useState<"pair" | "slider">("pair");
+  const [mode, setMode] = useState<"pair" | "slider" | "stack">("pair");
   const [split, setSplit] = useState(50);
   const treatmentUrl = `/patients/${result.patientId}/treatments/${result.treatmentId}`;
   const transform = `translate(${result.alignment.x}%, ${result.alignment.y}%) rotate(${result.alignment.rotation}deg) scale(${result.alignment.scale})`;
@@ -45,6 +45,7 @@ export function ResultView({ result }: { result: GalleryResult }) {
               <Layers2 aria-hidden="true" />
               Compare slider
             </button>
+            <button type="button" aria-pressed={mode === "stack"} onClick={() => setMode("stack")} className={buttonVariants({ variant: mode === "stack" ? "secondary" : "ghost", size: "lg" })}>Stacked</button>
           </div>
         )}
         {result.entryKind === "session" && result.before.url ? (
@@ -85,8 +86,8 @@ export function ResultView({ result }: { result: GalleryResult }) {
             The photographs could not be loaded. Close and reopen this result to
             try again.
           </div>
-        ) : mode === "pair" ? (
-          <div className="grid grid-cols-2 gap-3">
+        ) : mode !== "slider" ? (
+          <div className={mode === "stack" ? "grid gap-3" : "grid grid-cols-2 gap-3"}>
             {[
               { ...result.before, label: "Before" },
               { ...result.after, label: "After" },
@@ -213,6 +214,16 @@ export function ResultView({ result }: { result: GalleryResult }) {
           />
           <Detail label="Saved" value={galleryDate(result.createdAt)} />
         </dl>
+        {result.patientId && result.entryKind !== "demo" ? (
+          <div className="flex flex-wrap gap-2">
+            {result.before.photoId ? (
+              <Link href={`/patients/${result.patientId}/photos/${result.before.photoId}/edit?from=/results/${result.id}`} className={buttonVariants({ variant: "outline", size: "lg" })}>Edit baseline</Link>
+            ) : null}
+            {result.after.photoId ? (
+              <Link href={`/patients/${result.patientId}/photos/${result.after.photoId}/edit?from=/results/${result.id}`} className={buttonVariants({ variant: "outline", size: "lg" })}>Edit follow-up</Link>
+            ) : null}
+          </div>
+        ) : null}
         {result.entryKind === "demo" ? (
           <div id="reference-credits" className="space-y-3 text-sm leading-6">
             <p className="font-medium text-primary">
