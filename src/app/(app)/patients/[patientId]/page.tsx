@@ -75,6 +75,11 @@ async function PatientChartContent({ params }: ChartPageProps) {
           Edit chart
         </Link>
       </div>
+      <nav aria-label="Chart sections" className="flex flex-wrap gap-3">
+        <Link href={`/patients/${patient.id}/timeline`} className={buttonVariants({ size: "lg", variant: "outline" })}>Timeline</Link>
+        <Link href={`/patients/${patient.id}/progress`} className={buttonVariants({ size: "lg", variant: "outline" })}>Progress</Link>
+        <Link href={`/patients/${patient.id}/consent`} className={buttonVariants({ size: "lg", variant: "outline" })}>Consent</Link>
+      </nav>
       {details.length > 0 ? (
         <dl className="grid gap-3">
           {details.map(([label, value]) => (
