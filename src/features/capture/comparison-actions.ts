@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getWorkspace } from "@/features/access/workspace";
 import { createClient } from "@/lib/supabase/server";
@@ -14,26 +15,50 @@ const comparisonSchema = z.object({
   aligned: z.boolean(),
 });
 
-export async function saveComparisonAction(input: z.infer<typeof comparisonSchema>) {
+export async function saveComparisonAction(
+  input: z.infer<typeof comparisonSchema>,
+) {
   const parsed = comparisonSchema.safeParse(input);
   const workspace = await getWorkspace();
-  if (!parsed.success || !workspace?.activeMembership || workspace.kind !== "staff") {
+  if (
+    !parsed.success ||
+    !workspace?.activeMembership ||
+    workspace.kind !== "staff"
+  ) {
     return { ok: false, message: "The comparison could not be saved." };
   }
 
   const supabase = await createClient();
-  const { data: photos, error } = await supabase.from("photos")
-    .select("id, angle_id, upload_status, photo_sessions!inner(treatment_id, session_type, status, treatments!inner(patients!inner(organization_id)))")
+  const { data: photos, error } = await supabase
+    .from("photos")
+    .select(
+      "id, angle_id, upload_status, photo_sessions!inner(treatment_id, session_type, status, treatments!inner(patients!inner(organization_id)))",
+    )
     .in("id", [parsed.data.beforeId, parsed.data.afterId])
-    .eq("photo_sessions.treatments.patients.organization_id", workspace.activeMembership.organizationId);
+    .eq(
+      "photo_sessions.treatments.patients.organization_id",
+      workspace.activeMembership.organizationId,
+    );
   const before = photos?.find((photo) => photo.id === parsed.data.beforeId);
   const after = photos?.find((photo) => photo.id === parsed.data.afterId);
-  if (error || !before || !after || before.id === after.id || before.angle_id !== after.angle_id ||
-      before.upload_status !== "uploaded" || after.upload_status !== "uploaded" ||
-      before.photo_sessions.status !== "completed" || after.photo_sessions.status !== "completed" ||
-      before.photo_sessions.session_type !== "baseline" || after.photo_sessions.session_type !== "follow_up" ||
-      before.photo_sessions.treatment_id !== after.photo_sessions.treatment_id) {
-    return { ok: false, message: "Choose completed photographs of the same angle and treatment." };
+  if (
+    error ||
+    !before ||
+    !after ||
+    before.id === after.id ||
+    before.angle_id !== after.angle_id ||
+    before.upload_status !== "uploaded" ||
+    after.upload_status !== "uploaded" ||
+    before.photo_sessions.status !== "completed" ||
+    after.photo_sessions.status !== "completed" ||
+    before.photo_sessions.session_type !== "baseline" ||
+    after.photo_sessions.session_type !== "follow_up" ||
+    before.photo_sessions.treatment_id !== after.photo_sessions.treatment_id
+  ) {
+    return {
+      ok: false,
+      message: "Choose completed photographs of the same angle and treatment.",
+    };
   }
 
   const alignment = {
@@ -54,7 +79,10 @@ export async function saveComparisonAction(input: z.infer<typeof comparisonSchem
     .maybeSingle();
 
   const { error: saveError } = existing
-    ? await supabase.from("comparisons").update({ alignment }).eq("id", existing.id)
+    ? await supabase
+        .from("comparisons")
+        .update({ alignment })
+        .eq("id", existing.id)
     : await supabase.from("comparisons").insert({
         treatment_id: before.photo_sessions.treatment_id,
         before_photo_id: before.id,
@@ -62,7 +90,17 @@ export async function saveComparisonAction(input: z.infer<typeof comparisonSchem
         created_by: workspace.user.id,
         alignment,
       });
+  if (!saveError) {
+    revalidatePath("/home");
+    revalidatePath("/patients", "layout");
+    revalidatePath("/clinic");
+  }
   return saveError
     ? { ok: false, message: "The comparison could not be saved." }
-    : { ok: true, message: parsed.data.aligned ? "Aligned comparison saved." : "Comparison saved." };
+    : {
+        ok: true,
+        message: parsed.data.aligned
+          ? "Aligned comparison saved."
+          : "Comparison saved.",
+      };
 }

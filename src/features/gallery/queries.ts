@@ -38,8 +38,8 @@ export async function listClinicResults(
   if (input.product) query = query.eq("product_name", input.product);
   if (input.bodyArea) query = query.eq("body_area", input.bodyArea);
   if (input.gender) query = query.eq("patient_gender", input.gender);
-  if (input.collection !== "all")
-    query = query.eq("entry_kind", input.collection);
+  if (input.collection === "clinical") query = query.neq("entry_kind", "demo");
+  if (input.collection === "demo") query = query.eq("entry_kind", "demo");
   if (input.uploadedFrom)
     query = query.gte("uploaded_at", `${input.uploadedFrom}T00:00:00Z`);
   if (input.uploadedTo)
@@ -129,7 +129,12 @@ async function presentRows(
           {
             id: row.id,
             createdAt: row.created_at,
-            entryKind: row.entry_kind === "demo" ? "demo" : "clinical",
+            entryKind:
+              row.entry_kind === "demo"
+                ? "demo"
+                : row.entry_kind === "session"
+                  ? "session"
+                  : "clinical",
             isPlate: row.is_plate ?? false,
             sourceCredits: sourceCredits(row.source_credits),
             patientId: row.patient_id,
