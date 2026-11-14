@@ -81,6 +81,8 @@ async function CaptureSessionContent({ params }: CaptureSessionPageProps) {
           </p>
           <SessionPhotographs
             openPhotographs
+            patientId={session.patientId}
+            returnTo={`/capture/${session.id}`}
             photos={session.photos.map((photo) => ({
               id: photo.id,
               sessionId: session.id,

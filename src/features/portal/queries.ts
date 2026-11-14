@@ -27,6 +27,10 @@ export type ReleasedComparison = {
   y: number;
   rotation: number;
   scale: number;
+  layout: "side_by_side" | "slider" | "stack";
+  syncFraming: boolean;
+  beforeZoom: number;
+  afterZoom: number;
 };
 
 export type ReleasedTreatment = {
@@ -191,6 +195,10 @@ export async function getReleasedTreatment(treatmentId: string): Promise<Release
         y: alignment.y,
         rotation: alignment.rotation,
         scale: alignment.scale,
+        layout: alignment.layout,
+        syncFraming: alignment.syncFraming,
+        beforeZoom: alignment.beforeZoom,
+        afterZoom: alignment.afterZoom,
       };
     }),
   };
@@ -203,17 +211,23 @@ function one<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null;
 }
 
-function readAlignment(value: unknown) {
+function readAlignment(value: unknown): Pick<ReleasedComparison, "x" | "y" | "rotation" | "scale" | "aligned" | "layout" | "syncFraming" | "beforeZoom" | "afterZoom"> {
+  const fallback = { x: 0, y: 0, rotation: 0, scale: 1, aligned: false, layout: "side_by_side" as const, syncFraming: false, beforeZoom: 1, afterZoom: 1 };
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return { x: 0, y: 0, rotation: 0, scale: 1, aligned: false };
+    return fallback;
   }
   const record = value as Record<string, unknown>;
+  const layout = record.layout === "slider" || record.layout === "stack" || record.layout === "side_by_side" ? record.layout : "side_by_side";
   return {
     x: typeof record.x === "number" ? record.x : 0,
     y: typeof record.y === "number" ? record.y : 0,
     rotation: typeof record.rotation === "number" ? record.rotation : 0,
     scale: typeof record.scale === "number" ? record.scale : 1,
     aligned: record.aligned === true,
+    layout,
+    syncFraming: record.syncFraming === true,
+    beforeZoom: typeof record.beforeZoom === "number" ? record.beforeZoom : 1,
+    afterZoom: typeof record.afterZoom === "number" ? record.afterZoom : 1,
   };
 }
 

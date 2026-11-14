@@ -164,6 +164,8 @@ async function TreatmentContent({ params }: TreatmentPageProps) {
                     </span>
                   </Link>
                   <SessionPhotographs
+                    patientId={patient.id}
+                    returnTo={`/patients/${patient.id}/treatments/${treatment.id}`}
                     photos={savedPhotos.filter(
                       (photo) => photo.sessionId === session.id,
                     )}

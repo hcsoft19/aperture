@@ -8,9 +8,13 @@ export type SessionPhotograph = {
 export function SessionPhotographs({
   photos,
   openPhotographs = false,
+  patientId,
+  returnTo,
 }: {
   photos: SessionPhotograph[];
   openPhotographs?: boolean;
+  patientId?: string;
+  returnTo?: string;
 }) {
   return (
     <ul
@@ -31,6 +35,14 @@ export function SessionPhotographs({
             }
             className="group block overflow-hidden rounded-xl border border-border bg-card"
           >
+            {patientId ? (
+              <Link
+                href={`/patients/${patientId}/photos/${photo.id}/edit?from=${encodeURIComponent(returnTo ?? `/capture/${photo.sessionId}`)}`}
+                className="inline-flex min-h-11 items-center px-3 text-sm font-medium"
+              >
+                Edit {photo.angleName}
+              </Link>
+            ) : null}
             <div className="relative aspect-[3/4] bg-muted">
               <Image
                 src={`/api/clinic-photos/${photo.id}`}
