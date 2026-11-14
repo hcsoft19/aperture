@@ -10,11 +10,12 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/features/capture/actions", () => ({ preparePhotoAction: vi.fn(), discardPhotoAction: vi.fn(), finalizePhotoAction: vi.fn(), finishCaptureAction: vi.fn(), cancelCaptureAction: vi.fn() }));
 vi.mock("@/features/capture/media", () => ({ describePhotograph: vi.fn(), isCaptureMime: () => true, frameFromVideo: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: vi.fn() }));
+vi.mock("@/features/capture/quality-actions", () => ({ recordCaptureQualityAction: vi.fn(), saveCaptureSettingsAction: vi.fn() }));
 
 const session: CaptureSessionView = {
   id: "demo-session", status: "draft", sessionType: "baseline", patientName: "Demo Patient", treatmentName: "Demo", bodyArea: "Face",
   protocol: { id: "protocol", code: "DEMO", version: 1, name: "Demo protocol", angles: [{ id: "front", code: "front", name: "Front", sortOrder: 1, instructions: "Face the camera." }] },
-  photos: [], references: [], comparisons: [],
+  photos: [], references: [], comparisons: [], guidanceEnabled: false, canManageGuidance: false,
 };
 
 beforeEach(() => {

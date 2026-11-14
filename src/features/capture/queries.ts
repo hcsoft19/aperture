@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getVerifiedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
 export type CaptureAngle = {
@@ -29,11 +30,20 @@ export type CaptureTarget = {
   hasBaseline: boolean;
 };
 
+export type CapturePhotoQuality = {
+  status: "good" | "warning" | "poor" | "unavailable";
+  instruction: string;
+  faceCenterX: number | null;
+  faceCenterY: number | null;
+  faceWidth: number | null;
+};
+
 export type CapturePhoto = {
   id: string;
   angleId: string;
   previewUrl: string | null;
   capturedAt?: string | null;
+  quality: CapturePhotoQuality | null;
 };
 
 export type CaptureSessionView = {
@@ -48,6 +58,8 @@ export type CaptureSessionView = {
   protocol: CaptureProtocol;
   photos: CapturePhoto[];
   references: CapturePhoto[];
+  guidanceEnabled: boolean;
+  canManageGuidance: boolean;
   comparisons: {
     beforeId: string;
     afterId: string;
@@ -183,10 +195,10 @@ export async function getCaptureSession(
     if (!sessionProtocol) {
       return null;
     }
-    return assemble(data, treatment, patient, sessionProtocol, supabase);
+    return assemble(data, treatment, patient, sessionProtocol, supabase, organizationId);
   }
 
-  return assemble(data, treatment, patient, protocol, supabase);
+  return assemble(data, treatment, patient, protocol, supabase, organizationId);
 }
 
 async function protocolById(
@@ -239,6 +251,7 @@ async function assemble(
   patient: { first_name: string; last_name: string },
   protocol: CaptureProtocol,
   supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: string,
 ): Promise<CaptureSessionView> {
   const uploaded = data.photos.filter(
     (photo) => photo.upload_status === "uploaded",
@@ -282,6 +295,11 @@ async function assemble(
       },
     ];
   });
+  const quality = await loadCaptureQuality(
+    supabase,
+    organizationId,
+    [...uploaded.map((photo) => photo.id), ...references.map((photo) => photo.id)],
+  );
 
   return {
     id: data.id,
@@ -298,13 +316,69 @@ async function assemble(
       id: photo.id,
       angleId: photo.angle_id,
       previewUrl: previewUrls.get(photo.storage_path) ?? null,
+      quality: quality.byPhoto.get(photo.id) ?? null,
     })),
     references: references.map((photo) => ({
       id: photo.id,
       angleId: photo.angle_id,
       previewUrl: previewUrls.get(photo.storage_path) ?? null,
       capturedAt: photo.captured_at,
+      quality: quality.byPhoto.get(photo.id) ?? null,
     })),
+    guidanceEnabled: quality.guidanceEnabled,
+    canManageGuidance: quality.canManageGuidance,
+  };
+}
+
+async function loadCaptureQuality(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: string,
+  photoIds: string[],
+) {
+  const user = await getVerifiedUser();
+  const [settings, membership, assessments] = await Promise.all([
+    supabase
+      .from("organization_capture_settings")
+      .select("guidance_enabled")
+      .eq("organization_id", organizationId)
+      .maybeSingle(),
+    user
+      ? supabase
+          .from("organization_members")
+          .select("role")
+          .eq("organization_id", organizationId)
+          .eq("profile_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    photoIds.length
+      ? supabase
+          .from("capture_quality_assessments")
+          .select("photo_id, status, instruction, metrics")
+          .in("photo_id", photoIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  const byPhoto = new Map<string, CapturePhotoQuality>();
+  for (const row of assessments.data ?? []) {
+    const metrics = row.metrics;
+    if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
+      continue;
+    }
+    const record = metrics as Record<string, unknown>;
+    if (row.status !== "good" && row.status !== "warning" && row.status !== "poor" && row.status !== "unavailable") {
+      continue;
+    }
+    byPhoto.set(row.photo_id, {
+      status: row.status,
+      instruction: row.instruction,
+      faceCenterX: typeof record.faceCenterX === "number" ? record.faceCenterX : null,
+      faceCenterY: typeof record.faceCenterY === "number" ? record.faceCenterY : null,
+      faceWidth: typeof record.faceWidth === "number" ? record.faceWidth : null,
+    });
+  }
+  return {
+    byPhoto,
+    guidanceEnabled: settings.data?.guidance_enabled !== false,
+    canManageGuidance: membership.data?.role === "clinic_admin",
   };
 }
 

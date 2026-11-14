@@ -22,6 +22,7 @@ Phases 1 through 6 are implemented in this repository:
 6. Patient portal. A clinic can invite a patient, release a completed session, and share or revoke a comparison. The patient sees only that released material.
 7. Public landing page and clinic home. The landing page explains the workflow and shows an interactive side-by-side, baseline, and follow-up preview. The clinic home offers the patient library, a new capture, and a new chart.
 8. Non-destructive photograph editor. Staff open `/patients/{patientId}/photos/{photoId}/edit` from a session, a capture review, or a clinic result. Crop, zoom, pan, rotation, black or white privacy bars, and canvas padding are saved as a new `photo_edit_revisions` row. The original file is unchanged. Flattened JPEG and PNG exports go to the private `photo-derivatives` bucket. Comparisons can use a side-by-side, slider, or stacked layout, with optional synchronized zoom. Patients still cannot read revision JSON.
+9. Smart capture guidance. During a draft session the camera can show one framing instruction from on-device face detection plus blur, exposure, and steadiness. A poor frame needs a written reason before it is kept. Scores are stored in `capture_quality_assessments` and do not include landmarks or a copy of the photograph. `NEXT_PUBLIC_SMART_CAPTURE=off` leaves the original checklist. Patients cannot read the scores.
 
 ## Hosted prototype
 
@@ -170,6 +171,7 @@ Apply new SQL with `supabase migration new <name>` and then edit that file. Do n
 - `supabase/migrations/20261113220000_restrict_patient_sessions.sql`
 - `supabase/migrations/20261113221359_patient_portal.sql`
 - `supabase/migrations/20261114123328_photo_edit_revisions.sql`
+- `supabase/migrations/20261114131207_capture_quality_assessments.sql`
 
 After a schema change, regenerate `src/types/database.ts` with `npx supabase gen types typescript --local --schema public`.
 
