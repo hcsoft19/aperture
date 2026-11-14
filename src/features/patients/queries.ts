@@ -12,6 +12,7 @@ export type PatientSummary = {
 };
 
 export type PatientRecord = PatientSummary & {
+  gender: string | null;
   dateOfBirth: string | null;
   phone: string | null;
 };
@@ -19,6 +20,9 @@ export type PatientRecord = PatientSummary & {
 export type TreatmentRecord = {
   id: string;
   name: string;
+  procedureType: string;
+  productName: string;
+  protocolCode: string;
   category: string;
   bodyArea: string;
   description: string | null;
@@ -47,21 +51,21 @@ export async function listPatients(organizationId: string, search: string) {
     throw new Error("Could not load patients.");
   }
 
-  return (data ?? []).map(
-    (row): PatientSummary => ({
-      id: row.id,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      contactEmail: row.contact_email,
-    }),
-  );
+  return (data ?? []).map((row): PatientSummary => ({
+    id: row.id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    contactEmail: row.contact_email,
+  }));
 }
 
 export async function getPatient(organizationId: string, patientId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("patients")
-    .select("id, first_name, last_name, contact_email, date_of_birth, phone")
+    .select(
+      "id, first_name, last_name, contact_email, date_of_birth, phone, gender",
+    )
     .eq("organization_id", organizationId)
     .eq("id", patientId)
     .maybeSingle();
@@ -81,6 +85,7 @@ export async function getPatient(organizationId: string, patientId: string) {
     contactEmail: data.contact_email,
     dateOfBirth: data.date_of_birth,
     phone: data.phone,
+    gender: data.gender,
   } satisfies PatientRecord;
 }
 
@@ -88,7 +93,9 @@ export async function listTreatments(patientId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("treatments")
-    .select("id, name, category, body_area, description, start_date, status")
+    .select(
+      "id, name, category, body_area, description, start_date, status, procedure_type, product_name, protocol_code",
+    )
     .eq("patient_id", patientId)
     .order("start_date", { ascending: false, nullsFirst: false });
 
@@ -112,7 +119,9 @@ export async function getTreatment(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("treatments")
-    .select("id, name, category, body_area, description, start_date, status")
+    .select(
+      "id, name, category, body_area, description, start_date, status, procedure_type, product_name, protocol_code",
+    )
     .eq("patient_id", patientId)
     .eq("id", treatmentId)
     .maybeSingle();
@@ -124,7 +133,10 @@ export async function getTreatment(
   return data ? toTreatment(data) : null;
 }
 
-export async function countPhotographs(patientId: string, treatmentIds: string[]) {
+export async function countPhotographs(
+  patientId: string,
+  treatmentIds: string[],
+) {
   if (treatmentIds.length === 0) {
     return 0;
   }
@@ -132,10 +144,13 @@ export async function countPhotographs(patientId: string, treatmentIds: string[]
   const supabase = await createClient();
   const { count, error } = await supabase
     .from("photos")
-    .select("id, photo_sessions!inner(treatment_id, treatments!inner(patient_id))", {
-      count: "exact",
-      head: true,
-    })
+    .select(
+      "id, photo_sessions!inner(treatment_id, treatments!inner(patient_id))",
+      {
+        count: "exact",
+        head: true,
+      },
+    )
     .eq("upload_status", "uploaded")
     .eq("photo_sessions.treatments.patient_id", patientId)
     .in("photo_sessions.treatment_id", treatmentIds);
@@ -155,7 +170,9 @@ export type TreatmentSessionSummary = {
   releasedToPatient: boolean;
 };
 
-export async function listTreatmentSessions(treatmentId: string): Promise<TreatmentSessionSummary[]> {
+export async function listTreatmentSessions(
+  treatmentId: string,
+): Promise<TreatmentSessionSummary[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("photo_sessions")
@@ -180,6 +197,9 @@ function toTreatment(row: {
   id: string;
   name: string;
   category: string;
+  procedure_type: string;
+  product_name: string;
+  protocol_code: string;
   body_area: string;
   description: string | null;
   start_date: string | null;
@@ -189,6 +209,9 @@ function toTreatment(row: {
     id: row.id,
     name: row.name,
     category: row.category,
+    procedureType: row.procedure_type,
+    productName: row.product_name,
+    protocolCode: row.protocol_code,
     bodyArea: row.body_area,
     description: row.description,
     startDate: row.start_date,

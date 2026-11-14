@@ -4,10 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { genderOptions } from "@/features/gallery/models";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createPatientAction, updatePatientAction } from "@/features/patients/actions";
+import {
+  createPatientAction,
+  updatePatientAction,
+} from "@/features/patients/actions";
 import { patientSchema, type PatientValues } from "@/features/patients/schemas";
 
 type PatientFormProps = {
@@ -40,7 +44,11 @@ export function PatientForm({
   });
 
   return (
-    <form className="flex max-w-md flex-col gap-4" onSubmit={onSubmit} noValidate>
+    <form
+      className="flex max-w-md flex-col gap-4"
+      onSubmit={onSubmit}
+      noValidate
+    >
       {message ? (
         <p className="text-sm text-destructive" role="alert">
           {message}
@@ -60,6 +68,23 @@ export function PatientForm({
         autoComplete="family-name"
         registration={form.register("lastName")}
       />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="patient-gender">Patient gender (optional)</Label>
+        <select
+          id="patient-gender"
+          className="min-h-11 rounded-lg border border-input bg-card px-3 text-base"
+          {...form.register("gender")}
+        >
+          {genderOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-sm text-muted-foreground">
+          Record only information supplied by the patient.
+        </p>
+      </div>
       <Field
         id="date-of-birth"
         label="Date of birth"
@@ -101,7 +126,9 @@ function Field({
   id: string;
   label: string;
   error?: string;
-  registration: ReturnType<ReturnType<typeof useForm<PatientValues>>["register"]>;
+  registration: ReturnType<
+    ReturnType<typeof useForm<PatientValues>>["register"]
+  >;
   type?: string;
   autoComplete?: string;
 }) {

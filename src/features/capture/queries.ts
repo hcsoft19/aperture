@@ -19,6 +19,7 @@ export type CaptureProtocol = {
 };
 
 export type CaptureTarget = {
+  protocolCode?: string;
   treatmentId: string;
   treatmentName: string;
   bodyArea: string;
@@ -63,7 +64,7 @@ export async function listCaptureTargets(organizationId: string): Promise<Captur
   const [patientsResult, baselinesResult] = await Promise.all([
     supabase
       .from("patients")
-      .select("id, first_name, last_name, treatments(id, name, body_area), consents(purpose, revoked_at)")
+      .select("id, first_name, last_name, treatments(id, name, body_area, protocol_code), consents(purpose, revoked_at)")
       .eq("organization_id", organizationId)
       .order("last_name"),
     supabase
@@ -88,6 +89,7 @@ export async function listCaptureTargets(organizationId: string): Promise<Captur
     return (patient.treatments ?? []).map((treatment) => ({
       treatmentId: treatment.id,
       treatmentName: treatment.name,
+      protocolCode: treatment.protocol_code,
       bodyArea: treatment.body_area,
       patientId: patient.id,
       patientName,
@@ -97,12 +99,12 @@ export async function listCaptureTargets(organizationId: string): Promise<Captur
   });
 }
 
-export async function getCaptureProtocol(): Promise<CaptureProtocol | null> {
+export async function getCaptureProtocol(code = "FACE_STANDARD"): Promise<CaptureProtocol | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("photography_protocols")
     .select("id, code, version, name, photography_angles(id, code, name, sort_order, instructions)")
-    .eq("code", "FACE_STANDARD")
+    .eq("code", code)
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle();

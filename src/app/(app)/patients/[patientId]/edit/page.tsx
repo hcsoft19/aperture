@@ -59,6 +59,7 @@ async function EditChartContent({ params }: EditChartPageProps) {
           dateOfBirth: patient.dateOfBirth ?? "",
           contactEmail: patient.contactEmail ?? "",
           phone: patient.phone ?? "",
+          gender: (patient.gender ?? "") as import("@/features/patients/schemas").PatientValues["gender"],
         }}
         submitLabel="Save chart"
         pendingLabel="Saving…"

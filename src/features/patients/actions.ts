@@ -33,19 +33,25 @@ async function requireStaffClinic() {
   return workspace;
 }
 
-export async function createPatientAction(values: PatientValues): Promise<ChartActionResult> {
+export async function createPatientAction(
+  values: PatientValues,
+): Promise<ChartActionResult> {
   const parsed = patientSchema.safeParse(values);
 
   if (!parsed.success) {
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Check the chart and try again.",
+      message:
+        parsed.error.issues[0]?.message ?? "Check the chart and try again.",
     };
   }
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "Patient charts are limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "Patient charts are limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
@@ -58,6 +64,7 @@ export async function createPatientAction(values: PatientValues): Promise<ChartA
       date_of_birth: blankToNull(parsed.data.dateOfBirth),
       contact_email: blankToNull(parsed.data.contactEmail),
       phone: blankToNull(parsed.data.phone),
+      gender: parsed.data.gender || null,
     })
     .select("id")
     .single();
@@ -66,6 +73,7 @@ export async function createPatientAction(values: PatientValues): Promise<ChartA
     return { status: "error", message: "The chart could not be saved." };
   }
 
+  revalidatePath("/home");
   revalidatePath("/patients");
   redirect(`/patients/${data.id}`);
 }
@@ -87,7 +95,10 @@ export async function updatePatientAction(
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "Patient charts are limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "Patient charts are limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
@@ -99,6 +110,7 @@ export async function updatePatientAction(
       date_of_birth: blankToNull(parsed.data.dateOfBirth),
       contact_email: blankToNull(parsed.data.contactEmail),
       phone: blankToNull(parsed.data.phone),
+      gender: parsed.data.gender || null,
     })
     .eq("id", patientId)
     .eq("organization_id", workspace.activeMembership.organizationId)
@@ -108,6 +120,7 @@ export async function updatePatientAction(
     return { status: "error", message: "The chart could not be saved." };
   }
 
+  revalidatePath("/home");
   revalidatePath("/patients");
   revalidatePath(`/patients/${patientId}`);
   redirect(`/patients/${patientId}`);
@@ -124,13 +137,17 @@ export async function createTreatmentAction(
       status: "error",
       message: parsed.success
         ? "The treatment could not be saved."
-        : (parsed.error.issues[0]?.message ?? "Check the treatment and try again."),
+        : (parsed.error.issues[0]?.message ??
+          "Check the treatment and try again."),
     };
   }
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "Patient charts are limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "Patient charts are limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
@@ -151,6 +168,9 @@ export async function createTreatmentAction(
       patient_id: patientId,
       name: parsed.data.name,
       category: parsed.data.category,
+      procedure_type: parsed.data.procedureType ?? "",
+      product_name: parsed.data.productName ?? "",
+      protocol_code: parsed.data.protocolCode ?? "FACE_STANDARD",
       body_area: parsed.data.bodyArea,
       description: blankToNull(parsed.data.description),
       start_date: blankToNull(parsed.data.startDate),
@@ -164,6 +184,7 @@ export async function createTreatmentAction(
     return { status: "error", message: "The treatment could not be saved." };
   }
 
+  revalidatePath("/home");
   revalidatePath(`/patients/${patientId}`);
   redirect(`/patients/${patientId}/treatments/${data.id}`);
 }
@@ -180,13 +201,17 @@ export async function updateTreatmentAction(
       status: "error",
       message: parsed.success
         ? "The treatment could not be saved."
-        : (parsed.error.issues[0]?.message ?? "Check the treatment and try again."),
+        : (parsed.error.issues[0]?.message ??
+          "Check the treatment and try again."),
     };
   }
 
   const workspace = await requireStaffClinic();
   if (!workspace?.activeMembership) {
-    return { status: "error", message: "Patient charts are limited to professionals in a clinic." };
+    return {
+      status: "error",
+      message: "Patient charts are limited to professionals in a clinic.",
+    };
   }
 
   const supabase = await createClient();
@@ -206,6 +231,9 @@ export async function updateTreatmentAction(
     .update({
       name: parsed.data.name,
       category: parsed.data.category,
+      procedure_type: parsed.data.procedureType ?? "",
+      product_name: parsed.data.productName ?? "",
+      protocol_code: parsed.data.protocolCode ?? "FACE_STANDARD",
       body_area: parsed.data.bodyArea,
       description: blankToNull(parsed.data.description),
       start_date: blankToNull(parsed.data.startDate),
@@ -219,6 +247,7 @@ export async function updateTreatmentAction(
     return { status: "error", message: "The treatment could not be saved." };
   }
 
+  revalidatePath("/home");
   revalidatePath(`/patients/${patientId}`);
   revalidatePath(`/patients/${patientId}/treatments/${treatmentId}`);
   redirect(`/patients/${patientId}/treatments/${treatmentId}`);

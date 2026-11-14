@@ -63,6 +63,9 @@ async function EditTreatmentContent({ params }: EditTreatmentPageProps) {
         defaultValues={{
           name: treatment.name,
           category: treatment.category,
+          procedureType: treatment.procedureType,
+          productName: treatment.productName,
+          protocolCode: treatment.protocolCode as import("@/features/patients/schemas").TreatmentValues["protocolCode"],
           bodyArea: treatment.bodyArea,
           description: treatment.description ?? "",
           startDate: treatment.startDate ?? "",
