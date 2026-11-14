@@ -24,7 +24,7 @@ export function ProgressGallery({
   releasesUnavailable: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       {releasesUnavailable ? (
         <p className="text-base leading-7 text-muted-foreground" role="status">
           Saved releases could not be loaded. Try again before releasing anything new.
@@ -36,9 +36,9 @@ export function ProgressGallery({
           <p className="mt-2 text-base leading-7 text-muted-foreground">{EMPTY_PROGRESS_MESSAGE}</p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex min-w-0 max-w-full flex-col gap-3">
           {items.map((item) => (
-            <li key={`${item.kind}:${item.id}`}>
+            <li key={`${item.kind}:${item.id}`} className="min-w-0 max-w-full">
               <ReleaseControl
                 patientId={patientId}
                 item={item}
@@ -78,7 +78,7 @@ export function ReleaseControl({
   return (
     <form
       action={formAction}
-      className="flex flex-col items-start gap-3 rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10"
+      className="flex min-w-0 max-w-full flex-col items-start gap-3 rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10"
     >
       <div>
         <h2 className="text-base font-semibold">{item.label}</h2>
@@ -99,6 +99,7 @@ export function ReleaseControl({
         variant={released ? "outline" : "default"}
         disabled={pending || releasesUnavailable}
         aria-busy={pending || undefined}
+        className="whitespace-normal h-auto min-h-11 max-w-full w-full text-left shrink"
       >
         {label}
       </Button>

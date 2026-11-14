@@ -9,7 +9,7 @@ import { DeletionRequestForm } from "@/features/production-readiness/deletion-re
 import { isUuid } from "@/lib/ids";
 
 export const metadata = {
-  title: "Privacy request · Aperture",
+  title: "Privacy request",
   robots: { index: false, follow: false },
 };
 

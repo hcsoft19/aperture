@@ -7,7 +7,7 @@ import { PROTOTYPE_STORAGE_LIMIT_BYTES } from "@/features/clinic-usage/usage";
 import { storageStatus } from "@/features/production-readiness/storage";
 
 export const metadata = {
-  title: "Storage · Aperture",
+  title: "Storage",
   robots: { index: false, follow: false },
 };
 
