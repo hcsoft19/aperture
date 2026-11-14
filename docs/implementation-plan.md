@@ -90,6 +90,10 @@ A demonstration host is up. Supabase project `aperture` (`pnsrvrsgbkafkqqrdxcx`)
 
 Still open: a full RLS test suite, Playwright for sign-in, patient isolation, capture review, and comparison, and an accessibility pass. A commercial launch still needs a privacy, security, legal, and hosting review, including LGPD. Vercel Hobby is not the clinical hosting plan.
 
+### Phase 8 — Universal background removal
+
+Non-destructive background removal and replacement in the photo editor, supporting any clinical photograph subject (full body, partial body, face, mouth, hands, feet, skin close-ups). On-device segmentation using Transformers.js with general-purpose models (IS-Net or RMBG). White and custom color backgrounds. Manual brush correction for edge refinement. Corrections stored as metadata; masks regenerated on demand. Feature flag: `NEXT_PUBLIC_BACKGROUND_REMOVAL`. Full plan in `docs/MVP8_IMPLEMENTATION_PLAN.md`.
+
 ## Security rules that start now
 
 - Publishable key in the browser. Service-role key never ships.
