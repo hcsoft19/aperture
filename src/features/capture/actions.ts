@@ -53,7 +53,7 @@ export async function startCaptureAction(values: StartCaptureValues): Promise<Ca
   const organizationId = workspace.activeMembership.organizationId;
   const { data: treatment, error: treatmentError } = await supabase
     .from("treatments")
-    .select("id, body_area, patient_id, patients!inner(id, organization_id)")
+    .select("id, body_area, patient_id, protocol_code, patients!inner(id, organization_id)")
     .eq("id", parsed.data.treatmentId)
     .eq("patients.organization_id", organizationId)
     .maybeSingle();
@@ -105,7 +105,7 @@ export async function startCaptureAction(values: StartCaptureValues): Promise<Ca
     }
   }
 
-  const protocol = await getCaptureProtocol();
+  const protocol = await getCaptureProtocol(treatment.protocol_code);
   if (!protocol || protocol.angles.length === 0) {
     return { status: "error", message: "The photography protocol is not available." };
   }
@@ -412,7 +412,7 @@ async function loadDraft(
   const { data, error } = await supabase
     .from("photo_sessions")
     .select(
-      "id, status, session_type, protocol_id, treatments!inner(id, body_area, patient_id, patients!inner(organization_id)), photos(id, upload_status)",
+      "id, status, session_type, protocol_id, treatments!inner(id, body_area, patient_id, protocol_code, patients!inner(organization_id)), photos(id, upload_status)",
     )
     .eq("id", sessionId)
     .eq("status", "draft")

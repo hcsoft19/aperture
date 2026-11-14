@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { CaptureSetup } from "@/features/capture/capture-setup";
-import { getCaptureProtocol, listCaptureTargets } from "@/features/capture/queries";
+import { listCaptureTargets } from "@/features/capture/queries";
 
 export const metadata: Metadata = {
   title: "Capture",
@@ -38,9 +38,8 @@ async function CaptureContent({ searchParams }: CapturePageProps) {
     );
   }
 
-  const [targets, protocol, params] = await Promise.all([
+  const [targets, params] = await Promise.all([
     listCaptureTargets(access.organizationId),
-    getCaptureProtocol(),
     searchParams,
   ]);
   const treatment = typeof params.treatment === "string" ? params.treatment : undefined;
@@ -50,9 +49,7 @@ async function CaptureContent({ searchParams }: CapturePageProps) {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Guided capture</h1>
         <p className="mt-2 max-w-prose text-base leading-7 text-muted-foreground">
-          {protocol
-            ? `${protocol.name}, version ${protocol.version}, has ${protocol.angles.length} angles. The camera loads those instructions from the clinic record.`
-            : "The photography protocol is not available."}
+          Each treatment has its own photography protocol. The camera loads the saved views and instructions from the clinic record.
         </p>
       </div>
       <CaptureSetup targets={targets} initialTreatmentId={treatment} />

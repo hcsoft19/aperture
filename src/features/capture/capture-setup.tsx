@@ -75,6 +75,7 @@ export function CaptureSetup({ targets, initialTreatmentId }: CaptureSetupProps)
           ))}
         </select>
       </div>
+      <p className="text-base text-muted-foreground">Selected protocol: {(selected?.protocolCode ?? "FACE_STANDARD").replaceAll("_", " ").toLowerCase()}</p>
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-medium">Session</legend>
         <label className="flex min-h-11 items-center gap-3 text-base">

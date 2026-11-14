@@ -75,6 +75,9 @@ async function TreatmentContent({ params }: TreatmentPageProps) {
       <dl className="grid gap-3">
         <Detail label="Status" value={treatmentStatusLabel(treatment.status)} />
         <Detail label="Category" value={treatment.category} />
+        <Detail label="Procedure / type" value={treatment.procedureType || "Not recorded"} />
+        <Detail label="Product / drug" value={treatment.productName || "Not recorded"} />
+        <Detail label="Photography protocol" value={treatment.protocolCode.replaceAll("_", " ")} />
         <Detail label="Body area" value={treatment.bodyArea} />
         {startDate ? <Detail label="Start date" value={startDate} /> : null}
         {treatment.description ? <Detail label="Notes" value={treatment.description} /> : null}
