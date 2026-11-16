@@ -86,7 +86,7 @@ The signed-in clinic home greets the active clinic and offers the patient librar
 
 ### Phase 7 — Quality and deployment
 
-A demonstration host is up. Supabase project `aperture` (`pnsrvrsgbkafkqqrdxcx`) has the migrations and the synthetic seed. The primary Vercel host is [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app). Release the approved interface from the merged `production` branch using a Production deployment. Git pushes can create Preview deployments only; check the production alias and deployed commit before reporting that the live site is updated.
+A demonstration host is up at [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](https://aperture-hcsoft19-gmailcoms-projects.vercel.app). Its database address is not stored in this repository. Release the approved interface from the merged `production` branch using a Production deployment. Git pushes can create Preview deployments only; check the production alias and deployed commit before reporting that the live site is updated.
 
 Still open: a full RLS test suite, Playwright for sign-in, patient isolation, capture review, and comparison, and an accessibility pass. A commercial launch still needs a privacy, security, legal, and hosting review, including LGPD. Vercel Hobby is not the clinical hosting plan.
 
@@ -113,7 +113,7 @@ Non-destructive background removal and replacement in the photo editor, supporti
 5. Email confirmation follows the Supabase project setting.
 6. The env variable is `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. A legacy anon key can be pasted there until the project is rotated.
 7. Node.js 22 or newer is required. The machine used for this scaffold was on Node 20.18, which is below the current package engines.
-8. Local Supabase runs on offset ports because another local project already uses the defaults. A separate hosted prototype now exists; its addresses are in `docs/specification.md`.
+8. Local Supabase runs on offset ports because another local project already uses the defaults. A separate hosted prototype exists. Its database address is not stored in this repository. The public app hosts are in `docs/specification.md`.
 9. The signed-in app and public landing page share white surfaces, blush panels, wine accents, and Figtree typography. Light mode only.
 10. Staff membership chooses the professional shell. A linked patient with no staff membership sees the patient shell. A new account sees clinic setup.
 11. Playwright is deferred until Phase 7, when there is a workflow to drive.

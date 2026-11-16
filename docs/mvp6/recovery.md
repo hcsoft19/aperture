@@ -4,7 +4,7 @@ Production was not changed by this note. The hosted database was not dumped, res
 
 ## What is known
 
-The hosted database is the Supabase project `aperture`, ref `pnsrvrsgbkafkqqrdxcx`. It is a free prototype, and it is also the demo. Local Supabase is a separate stack. A local database is not a backup of the hosted project.
+The hosted database is a free prototype, and it is also the demo. Its project id is kept out of this repository. Local Supabase is a separate stack. A local database is not a backup of the hosted project.
 
 Clinical photographs stay in the private `clinical-photos` bucket. Originals are immutable. Staff storage policies allow insert and select. They do not allow those originals to be replaced or deleted. The prototype has no real patient data.
 

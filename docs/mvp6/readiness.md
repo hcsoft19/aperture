@@ -8,10 +8,9 @@ Aperture is a Next.js app. Authentication, Postgres, and Storage are Supabase. V
 
 | Item | Value |
 | --- | --- |
-| Vercel project | `prj_KyyAsjoOKxp0sPpJaXlSOksEZifW` |
 | Public hosts | `https://aperture-hcsoft19-gmailcoms-projects.vercel.app`, `https://aperture-sigma-gilt.vercel.app` |
 | Other host | `https://aperture.vercel.app` is a different product |
-| Supabase project | `aperture`, ref `pnsrvrsgbkafkqqrdxcx` |
+| Supabase | Hosted prototype, separate from the local stack. Its project id is not written here |
 | Supabase plan in use | Free prototype. This database is also the demo |
 | Local Supabase | A separate stack from the hosted project |
 

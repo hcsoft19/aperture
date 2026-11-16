@@ -33,14 +33,11 @@ Phases 1 through 6 are implemented in this repository:
 | --- | --- |
 | App | https://aperture-hcsoft19-gmailcoms-projects.vercel.app |
 | Alternate app host | https://aperture-sigma-gilt.vercel.app |
-| Vercel project | `aperture` on the `hcsoft19-gmailcoms-projects` team |
-| Supabase project | `aperture`, ref `pnsrvrsgbkafkqqrdxcx` |
-| API | https://pnsrvrsgbkafkqqrdxcx.supabase.co |
 | Release source | `production`; verify the deployed SHA in Vercel |
 
 `https://aperture.vercel.app` belongs to a different product. Do not set `NEXT_PUBLIC_SITE_URL` to it.
 
-The hosted database has the migrations in `supabase/migrations` and `supabase/seed.sql`. The demo accounts in the seed section below can sign in on the public URL. That was an explicit choice for this prototype. Do not add real patients, and do not copy that seed onto a project that will hold real records.
+The hosted database is separate from this repository. Do not add real patients, and do not copy `supabase/seed.sql` onto a project that will hold real records. The seed password below is for a local `supabase db reset` only.
 
 Vercel environment variables are `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SITE_URL`. Optional server-only values are `OPENROUTER_API_KEY` and `OPENROUTER_FALLBACK_MODEL`. The site URL is the first app host above. The service-role key is not stored there.
 
@@ -102,13 +99,13 @@ npx supabase start
 | Studio | http://127.0.0.1:54423 |
 | Mailpit | http://127.0.0.1:54424 |
 
-`npx supabase db reset` reapplies migrations and `supabase/seed.sql`. The current hosted prototype also has that seed. Do not apply it to a project that will hold real patients.
+`npx supabase db reset` reapplies migrations and `supabase/seed.sql` on the local database only. Do not apply that seed to a hosted project.
 
 Useful checks: `npm run lint`, `npm test`, and `npx tsc --noEmit`.
 
 ## Seed accounts and charts
 
-Both seed passwords are `local-demo-password`. These accounts are synthetic.
+Both local seed passwords are `local-demo-password`. These accounts are synthetic and are not credentials for the hosted prototype.
 
 | Email | Role |
 | --- | --- |

@@ -6,7 +6,7 @@ Production was not changed by this note. No index, cache, or query was added.
 
 Benchmarks were not measured. A concurrency load test was not run against the hosted database because that free prototype is also the demo. This note records no timings, request rates, error rates, or storage-cost figures.
 
-The hosted project remains Supabase `aperture`, ref `pnsrvrsgbkafkqqrdxcx`, on the free prototype. Vercel production serves the `main` branch of the Next.js app.
+The hosted project remains the free prototype. Its project id is kept out of this repository. Vercel production serves the `main` branch of the Next.js app.
 
 ## Likely hot paths
 

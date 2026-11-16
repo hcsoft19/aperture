@@ -56,12 +56,12 @@ npx supabase db reset
 
 Point `.env.local` at `http://127.0.0.1:54421` and the local publishable key from `npx supabase status`. Leave the secret key out of the file.
 
-The reset loads two synthetic accounts, both with the password `local-demo-password`:
+The reset loads two synthetic local accounts, both with the password `local-demo-password`:
 
 - `ada.clinic@example.com` — clinic administrator of Example Aesthetic Studio
 - `blake.patient@example.com` — linked to the synthetic chart Sam Rivera
 
-A second clinic in the seed exists only to prove isolation. Do not reuse these accounts or this seed with real patients.
+That password is for the local database only. Do not reuse it on a hosted project, and do not reuse these accounts or this seed with real patients.
 
 ## Scripts
 
@@ -78,7 +78,7 @@ The public app is [https://aperture-hcsoft19-gmailcoms-projects.vercel.app](http
 
 The release source is `production`. The approved home page, authentication screens, and clinic workspace share white surfaces, blush panels, wine accents, and Figtree typography. A Git push can create a Preview deployment without updating the public host: publish the merged commit with Vercel target `production` and verify the primary URL after the deployment is `READY`. Never treat a successful push or a ready Preview as proof that the public site changed.
 
-The hosted Supabase project is `aperture`, ref `pnsrvrsgbkafkqqrdxcx`, API `https://pnsrvrsgbkafkqqrdxcx.supabase.co`. Its database has the migrations in `supabase/migrations` and the synthetic seed, including the two demo accounts below. Do not add real patients to it. Vercel has the public URL, the publishable key, and `NEXT_PUBLIC_SITE_URL`. `OPENROUTER_API_KEY` is optional and server-only. The service-role key is not in Vercel and must not be added.
+The hosted prototype is a separate Supabase project. Its address, publishable key, and any server key stay in that project's settings and in Vercel, not in this repository. Do not apply `supabase/seed.sql` there, and do not add real patients. Vercel should have the public URL, the publishable key, and `NEXT_PUBLIC_SITE_URL` only. `OPENROUTER_API_KEY` is optional and server-only. The service-role key must not be added.
 
 Auth site URL is the Vercel hostname above. Redirects include `/auth/callback` and `/auth/callback?next=/reset-password` for that host, the alternate Vercel host, and local development.
 
