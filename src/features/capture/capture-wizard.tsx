@@ -53,6 +53,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
   const [reviewAssessment, setReviewAssessment] = useState<CaptureAssessment | null>(null);
   const [overrideReason, setOverrideReason] = useState("");
   const [guidanceOn, setGuidanceOn] = useState(session.guidanceEnabled);
+  const [showPreviousPhotograph, setShowPreviousPhotograph] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const angle = session.protocol.angles[angleIndex];
@@ -226,7 +227,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
         fileSizeBytes: details.fileSizeBytes,
         sha256: details.sha256,
         cameraFacing: source === "camera" ? facing : null,
-        overlayOpacity: reference?.previewUrl ? 0.45 : null,
+        overlayOpacity: showPreviousPhotograph && reference?.previewUrl ? 0.45 : null,
         referencePhotoId: reference?.id ?? null,
       });
 
@@ -339,7 +340,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
         )}
         {!pendingFile && !savedPhoto ? (
           <>
-            {reference?.previewUrl ? (
+            {showPreviousPhotograph && reference?.previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={reference.previewUrl}
@@ -354,6 +355,18 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
           </>
         ) : null}
       </div>
+      {reference?.previewUrl && !pendingFile && !savedPhoto && !locked && !alreadySaved ? (
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="min-h-11"
+          aria-pressed={showPreviousPhotograph}
+          onClick={() => setShowPreviousPhotograph((current) => !current)}
+        >
+          {showPreviousPhotograph ? "Hide previous photograph" : "Show previous photograph"}
+        </Button>
+      ) : null}
       {cameraMessage && !pendingFile && !savedPhoto ? (
         <p className="text-sm text-muted-foreground" role="status">
           {cameraMessage}
@@ -428,7 +441,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
         </div>
       )}
       <div className="flex gap-2">
-        <Button type="button" size="lg" variant="outline" disabled={angleIndex === 0} onClick={() => { resetReview(); setAngleIndex((current) => current - 1); }}>
+        <Button type="button" size="lg" variant="outline" disabled={angleIndex === 0} onClick={() => { resetReview(); setShowPreviousPhotograph(false); setAngleIndex((current) => current - 1); }}>
           Previous
         </Button>
         <Button
@@ -436,7 +449,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
           size="lg"
           variant="outline"
           disabled={angleIndex >= session.protocol.angles.length - 1}
-          onClick={() => { resetReview(); setAngleIndex((current) => current + 1); }}
+          onClick={() => { resetReview(); setShowPreviousPhotograph(false); setAngleIndex((current) => current + 1); }}
         >
           Next angle
         </Button>
