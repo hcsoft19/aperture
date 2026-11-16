@@ -12,6 +12,7 @@ import type {
 } from "./types";
 import { LocalSegmentationAdapter } from "./local-adapter";
 import { ManualSegmentationAdapter } from "./manual-adapter";
+import { TransformersSegmentationAdapter } from "./transformers-adapter";
 
 type LoadingState = "idle" | "loading" | "loaded" | "error";
 
@@ -23,9 +24,9 @@ interface ModelLoaderState {
 }
 
 const adapters: Record<SegmentationModelId, () => SegmentationAdapter> = {
-  "rmbg-1.4": () => new LocalSegmentationAdapter(),
-  "isnet-general-use": () => new LocalSegmentationAdapter(),
-  "modnet": () => new LocalSegmentationAdapter(),
+  "rmbg-1.4": () => new TransformersSegmentationAdapter("rmbg-1.4"),
+  "isnet-general-use": () => new TransformersSegmentationAdapter("isnet-general-use"),
+  modnet: () => new TransformersSegmentationAdapter("modnet"),
   manual: () => new ManualSegmentationAdapter(),
 };
 
@@ -195,7 +196,7 @@ export function isModelLoaded(): boolean {
   return state.loadingState === "loaded" && state.adapter?.isLoaded() === true;
 }
 
-/** Named cutout models currently share the on-device edge heuristic. */
+/** True only when the named model is still the local edge heuristic. */
 export function modelUsesEdgeHeuristic(modelId: SegmentationModelId): boolean {
   const factory = adapters[modelId];
   if (!factory) return false;

@@ -214,7 +214,7 @@ export function BackgroundTool({
               />
             </div>
             <span className="text-sm text-muted-foreground">
-              {processingState === "loading" ? "Loading model..." : "Processing..."}
+              {processingState === "loading" ? "Loading the cutout model..." : "Cutting out the subject..."}
             </span>
           </div>
         </div>

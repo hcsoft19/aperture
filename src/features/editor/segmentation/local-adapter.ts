@@ -4,8 +4,8 @@
  * Uses browser-based image processing for background removal.
  * No images are sent to external services.
  *
- * Current implementation: Edge-detection heuristic (fallback)
- * Future: Transformers.js with RMBG/IS-Net ONNX models
+ * Kept as the edge-heuristic fallback. The editor uses the Transformers.js
+ * cutout for named models and refuses this heuristic.
  */
 
 import type {
