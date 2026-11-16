@@ -53,6 +53,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
   const [reviewAssessment, setReviewAssessment] = useState<CaptureAssessment | null>(null);
   const [overrideReason, setOverrideReason] = useState("");
   const [guidanceOn, setGuidanceOn] = useState(session.guidanceEnabled);
+  const [showReferenceOverlay, setShowReferenceOverlay] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const angle = session.protocol.angles[angleIndex];
@@ -226,7 +227,7 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
         fileSizeBytes: details.fileSizeBytes,
         sha256: details.sha256,
         cameraFacing: source === "camera" ? facing : null,
-        overlayOpacity: reference?.previewUrl ? 0.45 : null,
+        overlayOpacity: reference?.previewUrl && showReferenceOverlay ? 0.35 : null,
         referencePhotoId: reference?.id ?? null,
       });
 
@@ -339,18 +340,27 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
         )}
         {!pendingFile && !savedPhoto ? (
           <>
-            {reference?.previewUrl ? (
+            {reference?.previewUrl && showReferenceOverlay ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={reference.previewUrl}
                 alt=""
-                className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-45"
+                className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-35"
               />
             ) : null}
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute top-[8%] left-1/2 h-[84%] w-px -translate-x-1/2 bg-white/80" />
               <div className="absolute top-1/2 left-1/2 h-[68%] w-[52%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-white/80" />
             </div>
+            {reference?.previewUrl ? (
+              <button
+                type="button"
+                className="absolute right-2 top-2 rounded-lg bg-black/60 px-3 py-2 text-xs font-medium text-white"
+                onClick={() => setShowReferenceOverlay((current) => !current)}
+              >
+                {showReferenceOverlay ? "Hide baseline" : "Show baseline"}
+              </button>
+            ) : null}
           </>
         ) : null}
       </div>
