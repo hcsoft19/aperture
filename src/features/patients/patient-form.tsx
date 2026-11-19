@@ -108,7 +108,7 @@ export function PatientForm({
         error={form.formState.errors.phone?.message}
         registration={form.register("phone")}
       />
-      <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
+      <Button type="submit" size="lg" className="sticky bottom-24 z-10 w-full lg:static" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? pendingLabel : submitLabel}
       </Button>
     </form>

@@ -121,6 +121,7 @@ describe("clinic gallery browsing", () => {
         initialPage={{ items: [result], total: 2, nextCursor: cursor }}
       />,
     );
+    await user.click(screen.getByRole("button", { name: "Search and filters" }));
     await user.type(
       screen.getByLabelText("Search treatments or patients"),
       "Missing",

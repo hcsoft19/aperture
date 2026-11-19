@@ -11,7 +11,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowDown,
-  ArrowUpRight,
   Camera,
   Check,
   Images,
@@ -58,6 +57,7 @@ export function ClinicGallery({
   const hasFilters = Object.entries(filters).some(
     ([key, value]) => value !== defaults[key as keyof GalleryFilters],
   );
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const requestId = useRef(0);
@@ -152,45 +152,26 @@ export function ClinicGallery({
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+      <header className="flex items-end justify-between gap-3">
         <div>
-          <p className="eyebrow mb-3 text-primary">{clinicName}</p>
-          <h1 className="editorial-title text-4xl sm:text-5xl">
-            Every journey, in view.
-          </h1>
-          <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-            Your clinic’s photographs and before-and-after comparisons. Find a
-            result, take a closer look, and follow the full story.
+          <p className="text-sm font-medium text-primary">{clinicName}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Photographs</h1>
+          <p className="mt-1 inline-flex items-center gap-2 text-base text-muted-foreground">
+            <LockKeyhole aria-hidden="true" className="size-4" />
+            Private to your clinic
           </p>
         </div>
         <Link
           href="/capture"
           className={buttonVariants({
             size: "lg",
-            className: "self-start shrink-0",
+            className: "shrink-0",
           })}
         >
           <Camera aria-hidden="true" />
           New capture
         </Link>
       </header>
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-secondary/60 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-card text-primary">
-            <Images aria-hidden="true" className="size-5" />
-          </span>
-          <div>
-            <p className="text-lg font-medium">The results collection</p>
-            <p className="text-sm text-muted-foreground">
-              Saved sessions, comparisons & credited references
-            </p>
-          </div>
-        </div>
-        <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-2 text-sm font-medium text-primary">
-          <LockKeyhole aria-hidden="true" className="size-4" />
-          Private to your clinic
-        </span>
-      </div>
       <section aria-labelledby="gallery-heading">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 id="gallery-heading" className="text-xl font-medium">
@@ -209,6 +190,18 @@ export function ClinicGallery({
             Continuous scroll
           </label>
         </div>
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="mb-4"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((current) => !current)}
+        >
+          <SlidersHorizontal aria-hidden="true" />
+          Search and filters
+        </Button>
+        {filtersOpen ? (
         <form
           onSubmit={apply}
           className="mb-6 rounded-xl border border-border bg-card p-4"
@@ -403,6 +396,7 @@ export function ClinicGallery({
             </div>
           </details>
         </form>
+        ) : null}
         {hasFilters ? (
           <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <p>
@@ -546,98 +540,46 @@ function ResultCard({
       aria-label={`View result: ${result.treatmentName}, ${result.patientName}`}
       className="group block w-full overflow-hidden rounded-2xl border border-border bg-card text-left transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring"
     >
-      {result.entryKind === "session" ? (
-        <div className="relative grid grid-cols-2 gap-px bg-border">
+      <div className="relative">
+        {result.entryKind === "session" ? (
           <div className="relative aspect-[3/4] bg-muted">
+            <PreviewPhoto resultId={result.id} side="before" alt={result.angleName} />
+          </div>
+        ) : result.isPlate ? (
+          <div className="relative aspect-[3/2] overflow-hidden bg-muted">
             <PreviewPhoto
               resultId={result.id}
               side="before"
-              alt={result.angleName}
+              alt={`Published before-and-after reference: ${result.treatmentName}`}
             />
-            <span className="absolute bottom-3 left-3 rounded-md bg-card/95 px-2 py-1 text-sm">
-              Saved session
-            </span>
           </div>
-          <div className="flex flex-col items-center justify-center gap-3 bg-secondary/50 p-4 text-center">
-            <Camera aria-hidden="true" className="size-6 text-primary" />
-            <span className="text-base font-medium">Photographs saved</span>
-            <span className="text-sm leading-6 text-muted-foreground">
-              Open the case to review views and continue the follow-up.
-            </span>
+        ) : (
+          <div className="relative grid grid-cols-2 gap-px bg-border">
+            {[
+              { label: "Before", side: "before" },
+              { label: "After", side: "after" },
+            ].map((photo) => (
+              <div key={photo.label} className="relative aspect-[3/4] overflow-hidden bg-muted">
+                <PreviewPhoto resultId={result.id} side={photo.side} alt={`${photo.label}: ${result.angleName}`} />
+                <span className="absolute top-3 left-3 rounded-md bg-card/95 px-2.5 py-1 text-sm font-medium">
+                  {photo.label}
+                </span>
+              </div>
+            ))}
           </div>
-        </div>
-      ) : result.isPlate ? (
-        <div className="relative aspect-[3/2] overflow-hidden bg-muted">
-          <PreviewPhoto
-            resultId={result.id}
-            side="before"
-            alt={`Published before-and-after reference: ${result.treatmentName}`}
-          />
-          <span className="absolute top-3 left-3 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium text-primary">
-            Before & after · reference
+        )}
+        <span className="absolute inset-x-3 bottom-3 rounded-xl bg-card/95 px-3 py-2">
+          <span className="block text-base font-medium">{result.treatmentName}</span>
+          <span className="block text-sm text-muted-foreground">
+            {result.patientName} · {result.angleName}
           </span>
-        </div>
-      ) : (
-        <div className="relative grid grid-cols-2 gap-px bg-border">
-          {[
-            { label: "Before", side: "before" },
-            { label: "After", side: "after" },
-          ].map((photo) => (
-            <div
-              key={photo.label}
-              className="relative aspect-[3/4] overflow-hidden bg-muted"
-            >
-              <PreviewPhoto
-                resultId={result.id}
-                side={photo.side}
-                alt={`${photo.label}: ${result.angleName}`}
-              />
-              <span className="absolute bottom-3 left-3 rounded-md bg-card/95 px-2.5 py-1 text-xs font-medium shadow-sm">
-                {photo.label}
-              </span>
-            </div>
-          ))}
-          <span className="absolute top-3 left-3 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium text-primary">
-            {result.angleName}
-          </span>
-        </div>
-      )}
-      <div className="p-5">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {result.category} · {result.bodyArea}
-          </p>
-          <ArrowUpRight
-            aria-hidden="true"
-            className="size-5 shrink-0 text-primary"
-          />
-        </div>
-        <h3 className="text-lg font-medium leading-snug tracking-tight">
-          {result.treatmentName}
-        </h3>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-          <span className="text-sm text-muted-foreground">
-            {result.patientName}
-          </span>
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary">
-            {result.entryKind === "demo"
-              ? "Reference demo"
-              : result.shared
-                ? "Shared"
-                : "Not shared"}
-          </span>
-        </div>
-        <span className="mt-3 inline-flex min-h-7 items-center gap-2 text-sm font-medium text-primary">
-          View full result{" "}
-          <ArrowUpRight aria-hidden="true" className="size-3.5" />
         </span>
-        {result.sourceCredits.length ? (
-          <span className="mt-2 block text-xs leading-5 text-muted-foreground">
-            Image: {result.sourceCredits[0].author} ·{" "}
-            {result.sourceCredits[0].license}
-          </span>
-        ) : null}
       </div>
+      {result.sourceCredits.length ? (
+        <span className="block px-3 py-2 text-sm leading-5 text-muted-foreground">
+          Image: {result.sourceCredits[0].author} · {result.sourceCredits[0].license}
+        </span>
+      ) : null}
     </button>
   );
 }

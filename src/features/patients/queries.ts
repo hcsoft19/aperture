@@ -248,3 +248,30 @@ export async function listTreatmentPhotographs(
     })
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
+
+export type PatientPhotograph = {
+  id: string;
+  angleName: string;
+};
+
+export async function listPatientPhotographs(organizationId: string, patientId: string) {
+  const db = await createClient();
+  const { data, error } = await db
+    .from("photos")
+    .select(
+      "id,captured_at,photography_angles(name),photo_sessions!inner(treatments!inner(patients!inner(id,organization_id)))",
+    )
+    .eq("upload_status", "uploaded")
+    .eq("photo_sessions.treatments.patients.id", patientId)
+    .eq("photo_sessions.treatments.patients.organization_id", organizationId)
+    .order("captured_at", { ascending: false })
+    .limit(12);
+  if (error) throw new Error("Could not load saved photographs.");
+  return (data ?? []).map((photo) => {
+    const angle = Array.isArray(photo.photography_angles) ? photo.photography_angles[0] : photo.photography_angles;
+    return {
+      id: photo.id,
+      angleName: angle?.name ?? "Saved photograph",
+    } satisfies PatientPhotograph;
+  });
+}

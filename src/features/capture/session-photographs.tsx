@@ -21,19 +21,11 @@ export function SessionPhotographs({
       aria-label="Saved session photographs"
       className="grid grid-cols-2 gap-3 sm:grid-cols-3"
     >
-      {photos.map((photo) => (
+      {photos.map((photo, index) => (
         <li
           key={photo.id}
-          className="overflow-hidden rounded-xl border border-border bg-card"
+          className={`overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 ${index === 0 ? "col-span-2 ring-2 ring-primary sm:col-span-3" : ""}`}
         >
-          {patientId ? (
-            <Link
-              href={`/patients/${patientId}/photos/${photo.id}/edit?from=${encodeURIComponent(returnTo ?? `/capture/${photo.sessionId}`)}`}
-              className="inline-flex min-h-11 items-center px-3 text-sm font-medium"
-            >
-              Edit {photo.angleName}
-            </Link>
-          ) : null}
           <Link
             aria-label={`View ${photo.angleName} photograph`}
             prefetch={false}
@@ -46,20 +38,32 @@ export function SessionPhotographs({
             }
             className="group block"
           >
-            <div className="relative aspect-[3/4] bg-muted">
+            <div className={`relative bg-muted ${index === 0 ? "aspect-[3/4] max-h-[70dvh]" : "aspect-[3/4]"}`}>
               <Image
                 src={`/api/clinic-photos/${photo.id}`}
                 alt={photo.angleName}
                 fill
                 unoptimized
-                sizes="(min-width: 768px) 260px, 45vw"
+                sizes="(min-width: 768px) 640px, 100vw"
                 className="object-contain"
               />
+              {index === 0 ? (
+                <span className="absolute top-3 left-3 rounded-full bg-card/95 px-3 py-1 text-sm font-medium text-primary">
+                  Uploaded photograph
+                </span>
+              ) : null}
             </div>
-            <span className="flex min-h-11 items-center p-3 text-sm font-medium text-primary">
-              {photo.angleName}
-            </span>
           </Link>
+          {patientId ? (
+            <Link
+              href={`/patients/${patientId}/photos/${photo.id}/edit?from=${encodeURIComponent(returnTo ?? `/capture/${photo.sessionId}`)}`}
+              className="flex min-h-11 w-full items-center justify-center bg-primary px-3 text-base font-medium text-primary-foreground"
+            >
+              Edit {photo.angleName}
+            </Link>
+          ) : (
+            <span className="flex min-h-11 items-center px-3 text-base font-medium">{photo.angleName}</span>
+          )}
         </li>
       ))}
     </ul>

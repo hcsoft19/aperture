@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -6,7 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { staffChartContext } from "@/features/patients/access";
 import { ChartMessage } from "@/features/patients/chart-message";
 import { formatChartDate, treatmentStatusLabel } from "@/features/patients/labels";
-import { countPhotographs, getPatient, listTreatments } from "@/features/patients/queries";
+import { countPhotographs, getPatient, listPatientPhotographs, listTreatments } from "@/features/patients/queries";
 import { InvitePanel } from "@/features/sharing/invite-panel";
 import { getChartLink } from "@/features/sharing/queries";
 import { isUuid } from "@/lib/ids";
@@ -46,9 +47,10 @@ async function PatientChartContent({ params }: ChartPageProps) {
     return <ChartMessage title="Chart" message="This chart is not available." />;
   }
 
-  const [treatments, link] = await Promise.all([
+  const [treatments, link, photographsOnChart] = await Promise.all([
     listTreatments(patientId),
     getChartLink(patientId),
+    listPatientPhotographs(access.organizationId, patientId),
   ]);
   const photographs = await countPhotographs(
     patientId,
@@ -75,6 +77,26 @@ async function PatientChartContent({ params }: ChartPageProps) {
           Edit chart
         </Link>
       </div>
+      {photographsOnChart.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Photographs</h2>
+          <LatestPhotograph patientId={patient.id} photo={photographsOnChart[0]} />
+          {photographsOnChart.length > 1 ? (
+            <ul aria-label="More photographs" className="flex gap-3 overflow-x-auto pb-1">
+              {photographsOnChart.slice(1).map((photo) => (
+                <li key={photo.id} className="w-24 shrink-0">
+                  <Link href={`/patients/${patient.id}/photos/${photo.id}/edit?from=${encodeURIComponent(`/patients/${patient.id}`)}`} className="block">
+                    <span className="relative block aspect-[3/4] overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/10">
+                      <Image src={`/api/clinic-photos/${photo.id}`} alt={photo.angleName} fill unoptimized sizes="96px" className="object-contain" />
+                    </span>
+                    <span className="mt-1 block text-sm font-medium">{photo.angleName}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
       <nav aria-label="Chart sections" className="flex flex-wrap gap-3">
         <Link href={`/patients/${patient.id}/timeline`} className={buttonVariants({ size: "lg", variant: "outline" })}>Timeline</Link>
         <Link href={`/patients/${patient.id}/progress`} className={buttonVariants({ size: "lg", variant: "outline" })}>Progress</Link>
@@ -127,14 +149,37 @@ async function PatientChartContent({ params }: ChartPageProps) {
           <InvitePanel patientId={patient.id} linked={link.linked} invitation={link.invitation} />
         </div>
       </div>
-      <div>
-        <h2 className="text-lg font-semibold">Photographs</h2>
-        <p className="mt-2 text-base leading-7 text-muted-foreground">
-          {photographs === 0
-            ? "No photographs yet. Open a treatment to start a session."
-            : "Photographs stay in the clinic record. Open a treatment to review them."}
-        </p>
-      </div>
+      {photographsOnChart.length === 0 ? (
+        <div>
+          <h2 className="text-lg font-semibold">Photographs</h2>
+          <p className="mt-2 text-base leading-7 text-muted-foreground">
+            {photographs === 0
+              ? "No photographs yet. Open a treatment to start a session."
+              : "Photographs stay in the clinic record. Open a treatment to review them."}
+          </p>
+        </div>
+      ) : null}
     </section>
+  );
+}
+
+function LatestPhotograph({
+  patientId,
+  photo,
+}: {
+  patientId: string;
+  photo: { id: string; angleName: string };
+}) {
+  const href = `/patients/${patientId}/photos/${photo.id}/edit?from=${encodeURIComponent(`/patients/${patientId}`)}`;
+  return (
+    <div className="flex flex-col gap-3">
+      <Link href={href} className="relative block aspect-[3/4] max-h-[58dvh] overflow-hidden rounded-2xl bg-muted ring-2 ring-primary">
+        <Image src={`/api/clinic-photos/${photo.id}`} alt={photo.angleName} fill unoptimized sizes="(min-width: 1024px) 640px, 100vw" className="object-contain" />
+        <span className="absolute top-3 left-3 rounded-full bg-card/95 px-3 py-1 text-sm font-medium text-primary">Uploaded photograph</span>
+      </Link>
+      <Link href={href} className={buttonVariants({ size: "lg", className: "mb-2 w-full scroll-mb-28" })}>
+        Edit {photo.angleName}
+      </Link>
+    </div>
   );
 }

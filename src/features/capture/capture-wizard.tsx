@@ -304,40 +304,37 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
   const checksComplete = CHECKS.every((item) => checks[item.id]);
 
   return (
-    <div className="flex max-w-xl flex-col gap-5">
-      <SessionReview
-        review={reviewSession(
-          session.protocol.angles.map((angle) => ({ id: angle.id, name: angle.name })),
-          session.photos.map((photo) => ({ id: photo.id, angleId: photo.angleId })),
-        )}
-      />
+    <div className="flex flex-col gap-3">
       <div>
         <p className="text-sm text-muted-foreground">
           {session.patientName} · {session.treatmentName}
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{angle.name}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {session.protocol.name} version {session.protocol.version} · Angle {angleIndex + 1} of{" "}
-          {session.protocol.angles.length}
+        <p className="mt-1 text-base text-muted-foreground">
+          Angle {angleIndex + 1} of {session.protocol.angles.length}
         </p>
       </div>
-      <p className="text-base leading-7">{angle.instructions}</p>
       {message ? (
         <p className="text-sm text-destructive" role="alert">
           {message}
         </p>
       ) : null}
-      <div className="relative overflow-hidden rounded-xl bg-black">
+      <div className="relative min-h-[68dvh] overflow-hidden rounded-2xl bg-black ring-2 ring-primary/50">
         {pendingFile && previewUrl ? (
           // The review image is a local photograph that has not been uploaded yet.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt={`Review of ${angle.name}`} className="aspect-[3/4] w-full object-contain" />
+          <img src={previewUrl} alt={`Review of ${angle.name}`} className="min-h-[68dvh] w-full object-contain" />
         ) : savedPhoto?.previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={savedPhoto.previewUrl} alt={angle.name} className="aspect-[3/4] w-full object-contain" />
+          <img src={savedPhoto.previewUrl} alt={angle.name} className="min-h-[68dvh] w-full object-contain" />
         ) : (
-          <video ref={videoRef} className="aspect-[3/4] w-full object-contain" playsInline muted autoPlay />
+          <video ref={videoRef} className="min-h-[68dvh] w-full object-contain" playsInline muted autoPlay />
         )}
+        {pendingFile || savedPhoto ? (
+          <p className="pointer-events-none absolute top-3 left-3 rounded-full bg-card/95 px-3 py-1 text-sm font-medium text-primary">
+            Uploaded photograph
+          </p>
+        ) : null}
         {!pendingFile && !savedPhoto ? (
           <>
             {showPreviousPhotograph && reference?.previewUrl ? (
@@ -420,11 +417,11 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button type="button" size="lg" onClick={() => void captureFrame()} disabled={Boolean(cameraMessage)}>
+          <div className="flex flex-col gap-3">
+            <Button type="button" size="lg" className="w-full" onClick={() => void captureFrame()} disabled={Boolean(cameraMessage)}>
               Capture
             </Button>
-            <Button type="button" size="lg" variant="outline" onClick={() => setFacing((current) => (current === "environment" ? "user" : "environment"))}>
+            <Button type="button" size="lg" variant="outline" className="w-full" onClick={() => setFacing((current) => (current === "environment" ? "user" : "environment"))}>
               Switch camera
             </Button>
           </div>
@@ -456,42 +453,54 @@ export function CaptureWizard({ session, guidanceEnabled = false }: CaptureWizar
       </div>
       {!locked ? (
         <form
-          className="flex flex-col gap-3 border-t border-border pt-4"
+          className="flex flex-col gap-3"
           onSubmit={(event) => {
             event.preventDefault();
           }}
         >
-          <Label htmlFor="missing-reason">Missing angles</Label>
-          <Textarea
-            id="missing-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            placeholder="Required when the series is incomplete."
-          />
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button type="button" size="lg" disabled={saving} onClick={() => void finish("complete")}>
+          <details className="rounded-2xl bg-card p-3 ring-1 ring-foreground/10">
+            <summary className="min-h-11 cursor-pointer text-base font-medium">Session details</summary>
+            <div className="mt-3 flex flex-col gap-3">
+              <SessionReview
+                review={reviewSession(
+                  session.protocol.angles.map((item) => ({ id: item.id, name: item.name })),
+                  session.photos.map((photo) => ({ id: photo.id, angleId: photo.angleId })),
+                )}
+              />
+              <p className="text-base leading-7">{angle.instructions}</p>
+              <Label htmlFor="missing-reason">Missing angles</Label>
+              <Textarea
+                id="missing-reason"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Required when the series is incomplete."
+              />
+              {guidanceActive ? <SavedGuidance session={session} /> : null}
+              {guidanceEnabled && session.canManageGuidance ? (
+                <label className="flex min-h-11 items-center gap-3 text-base">
+                  <input
+                    type="checkbox"
+                    checked={guidanceOn}
+                    onChange={(event) => {
+                      const next = event.target.checked;
+                      setGuidanceOn(next);
+                      void saveCaptureSettingsAction({ guidanceEnabled: next });
+                    }}
+                  />
+                  Smart guidance for this clinic
+                </label>
+              ) : null}
+            </div>
+          </details>
+          <div className="flex flex-col gap-3">
+            <Button type="button" size="lg" className="w-full" disabled={saving} onClick={() => void finish("complete")}>
               Finish session
             </Button>
-            <Button type="button" size="lg" variant="outline" disabled={saving} onClick={() => void finish("cancel")}>
+            <Button type="button" size="lg" variant="outline" className="w-full" disabled={saving} onClick={() => void finish("cancel")}>
               {uploadedCount === 0 ? "Discard session" : "Cancel session"}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">{uploadedCount} of {session.protocol.angles.length} angles saved.</p>
-          {guidanceActive ? <SavedGuidance session={session} /> : null}
-          {guidanceEnabled && session.canManageGuidance ? (
-            <label className="flex min-h-11 items-center gap-3 text-base">
-              <input
-                type="checkbox"
-                checked={guidanceOn}
-                onChange={(event) => {
-                  const next = event.target.checked;
-                  setGuidanceOn(next);
-                  void saveCaptureSettingsAction({ guidanceEnabled: next });
-                }}
-              />
-              Smart guidance for this clinic
-            </label>
-          ) : null}
+          <p className="text-base text-muted-foreground">{uploadedCount} of {session.protocol.angles.length} angles saved.</p>
         </form>
       ) : (
         <p className="text-base text-muted-foreground">

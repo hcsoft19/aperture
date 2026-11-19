@@ -28,6 +28,7 @@ interface BackgroundToolProps {
   bitmap: ImageBitmap | null;
   onChange: (edit: BackgroundRemovalEdit) => void;
   onPreviewReady: (result: RenderBackgroundResult | null) => void;
+  onActivity?: (activity: { label: string; progress: number } | null) => void;
 }
 
 type ProcessingState = "idle" | "loading" | "processing" | "ready" | "unavailable" | "error";
@@ -40,12 +41,26 @@ export function BackgroundTool({
   bitmap,
   onChange,
   onPreviewReady,
+  onActivity,
 }: BackgroundToolProps) {
   const [processingState, setProcessingState] = useState<ProcessingState>("idle");
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [mask, setMask] = useState<ImageData | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!onActivity) return;
+    if (processingState === "loading") {
+      onActivity({ label: "Loading the cutout model...", progress: loadingProgress });
+      return;
+    }
+    if (processingState === "processing") {
+      onActivity({ label: "Cutting out the subject...", progress: 100 });
+      return;
+    }
+    onActivity(null);
+  }, [loadingProgress, onActivity, processingState]);
 
   useEffect(() => {
     return subscribeToModelLoader(() => {
